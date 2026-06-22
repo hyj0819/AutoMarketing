@@ -1,0 +1,435 @@
+使用账号:NEAGLE_GOLF; 指纹浏览器USER_ID:k1byab0k
+
+Start at 2026-06-18 21:34:49
+
+Start from line 1 of log/tiktok/golf/2026-06-12/potential_customers_reply.csv
+
+(1/2)
+🚀 正在打开视频: https://www.tiktok.com/@trendymisses/video/7641475852735188237
+⚠️ 评论项加载超时
+  原评论: Where would you put a projector?
+  回复:  Short throw from the ceiling or floor is usually the cleanest fix. 
+  ⚠️ 未找到匹配的评论项
+  ❌ 私信失败: list indices must be integers or slices, not str
+
+
+
+(2/2)
+🚀 正在打开视频: https://www.tiktok.com/@foresight.australia/video/7647663381683850516
+  原评论: please help me open a business with this entire setup 😭
+  回复: 😄 We do turnkey commercial solutions for sim lounges and training studios, everything from sensors to software. 
+item_text_content:so every putt is dead straight? better than nothing i guess
+comment_text:please help me open a business with this entire setup 😭
+item_text_content:please help me open a business with this entire setup 😭
+comment_text:please help me open a business with this entire setup 😭
+✅ 评论 #2 的回复按钮已点击
+❌ 输入回复文本失败 (评论 #2): ElementHandle.click: Timeout 30000ms exceeded.
+Call log:
+attempting click action
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #1
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #2
+  -   waiting 20ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #3
+  -   waiting 100ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #4
+  -   waiting 100ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #5
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #6
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #7
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #8
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #9
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #10
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #11
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #12
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #13
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #14
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #15
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #16
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #17
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #18
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #19
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #20
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #21
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #22
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #23
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #24
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #25
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #26
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #27
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #28
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #29
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #30
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #31
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #32
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #33
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #34
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #35
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #36
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #37
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #38
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #39
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #40
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #41
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #42
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #43
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #44
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #45
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #46
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #47
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #48
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #49
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #50
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #51
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #52
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #53
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #54
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #55
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #56
+  -   waiting 500ms
+  -   waiting for element to be visible, enabled and stable
+  -   element is visible, enabled and stable
+  -   scrolling into view if needed
+  -   done scrolling
+  -   <div id="placeholder-4lkpl" class="public-DraftEditorPlaceholder-inner">Add comment...</div> from <div class="public-DraftEditorPlaceholder-root">…</div> subtree intercepts pointer events
+  - retrying click action, attempt #57
+  -   waiting 500ms
+
+  ❌ 私信失败: list indices must be integers or slices, not str
+
+
+
+End at 2026-06-18 21:35:58
+
+
+💾 任务结束。本轮成功发送 0 条私信。

@@ -1,0 +1,27 @@
+在 TradingView 桌面应用中执行以下流程：
+
+1. 启动 TradingView（带 --remote-debugging-port=9222 调试参数）
+2. 搜索指定关键词（搜索词从附件keywords.txt中获取，每个搜索词都要执行以下步骤）
+3. 在 Ideas 标签下：
+   - 按时间排序
+   - 筛选近3个月内发布且评论数 > 0 的文章
+   - 依次进入符合条件的文章
+   - 遍历评论用户（排除文章作者）
+   - 进入每个用户主页，点击私信按钮，并发送私信（私信内容从附件first_message.txt中获取，随机挑选一条，但是不能连续挑选同一条）。
+说明：
+（1）如果之前给该用户发送过私信，就跳过，不要重复发送了。
+（2）已发送的用户列表在contacted_users.txt里，文件每行代表一个用户，两列用\t隔开，第一个字段是用户名，第二个字段是主页链接。
+（3）已发送过消息的用户，存储并追加到contacted_users.txt里，存储内容包括（用户名、主页链接、评论所在文章的标题和链接）。之前的内容不要动。
+
+   - 关闭文章，回到搜索页继续下一篇
+
+4. 在 Scripts 标签下重复同样流程
+
+5. 完成后关闭 TradingView
+
+技术要点：
+- 使用 CDP (Chrome DevTools Protocol) 通过 WebSocket 控制页面
+- 页面 ID 每次重启都会变化，需要先获取当前活跃的 PAGE_ID
+- 使用 nativeInputValueSetter 设置输入框值
+- 使用 location.href 导航页面
+- 私信按钮 class: messageButton-ftbrMZE5contacted_users.txtfirst_message.txtkeywords.txt
