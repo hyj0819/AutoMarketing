@@ -62,7 +62,7 @@ async def main():
     # ==================== 基础配置 ====================
     PROJECT_NAME = "golf"
     FLAG = "new"
-    USER_DATA_DIR = "/Users/coast/Desktop/Chrome_Bot_Data"
+    USER_DATA_DIR = "/Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK"
     CONTACTED_USERS_FILE = f'files/Reddit/{PROJECT_NAME}/contacted_users.txt'
     LOG_DIR = f"log/reddit/{PROJECT_NAME}/{str(datetime.date.today())}/{FLAG}"
     TARGET_POST_FILE = f"{LOG_DIR}/target_posts.txt"

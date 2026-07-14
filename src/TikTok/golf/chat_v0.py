@@ -5,7 +5,7 @@ import random
 import datetime
 
 from pydantic.type_adapter import P
-USER_DATA_DIR = "/Users/coast/Desktop/chrome_profile"  # 需要提前登录的Chrome用户数据目录
+USER_DATA_DIR = os.path.expanduser("~/Desktop/chrome_profile")  # 需要提前登录的Chrome用户数据目录
 
 async def send_direct_message(context, username, message_content):
     async with async_playwright() as p:

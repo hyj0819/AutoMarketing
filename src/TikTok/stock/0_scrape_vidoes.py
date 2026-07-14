@@ -9,7 +9,7 @@ import csv
 
 sys.path.append('src/TikTok/common')
 # 导入 TikTok 专用模块
-from search_keywords_v0 import search_keywords
+from search_keywords_v0 import search_keywords_v0
 from scrape_reviews_v0 import scrape_comments
 #from chat_v0 import send_direct_message
 sys.path.append('src/utils')
@@ -108,7 +108,7 @@ async def main():
         all_videos = []
         for kw in KEYWORDS:
             print(f"\n🔍 正在搜索关键词视频: {kw}")
-            videos = await search_keywords(page, kw)
+            videos = await search_keywords_v0(page, kw)
             all_videos.extend(videos)
             await asyncio.sleep(random.randint(1, 3))
 

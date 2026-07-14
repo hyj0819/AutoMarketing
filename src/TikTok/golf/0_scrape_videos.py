@@ -13,7 +13,7 @@ from common_utils import get_text_response_ds, load_contacted_users
 
 # ==================== 基础配置 ====================
 PROJECT_NAME = "golf"
-USER_DATA_DIR = "/Users/coast/Desktop/Chrome_Bot_Data_TK"
+USER_DATA_DIR = "/Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK"
 CONTACTED_USERS_FILE = f'files/TikTok/{PROJECT_NAME}/contacted_users.txt'
 LOG_DIR = f"log/tiktok/{PROJECT_NAME}/{str(datetime.date.today())}"
 TARGET_VIDEO_FILE = f"{LOG_DIR}/target_videos.txt"

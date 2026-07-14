@@ -1,4 +1,5 @@
 import asyncio
+import os
 from openai import timeout
 from playwright.async_api import async_playwright
 from time import sleep 
@@ -10,7 +11,8 @@ from itertools import islice
 sys.path.append('src/utils')
 from common_utils import load_contacted_users, get_adspower_ws
 from pydantic.type_adapter import P
-USER_DATA_DIR = "/Users/coast/Desktop/chrome_profile"  # 需要提前登录的Chrome用户数据目录
+USER_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "chrome_data", "chrome_profile")
+os.makedirs(USER_DATA_DIR, exist_ok=True)
 MAX_USERS = 1000
 
 # AdsPower API 信息

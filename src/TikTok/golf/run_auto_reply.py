@@ -32,7 +32,7 @@ from reply_comments_v0 import batch_reply_comments, extract_comment_data
 # ==================== 配置区域 ====================
 PROJECT_NAME = "engagement"
 FLAG = "auto_reply"
-USER_DATA_DIR = "/Users/coast/Desktop/Chrome_Bot_Data_TK"
+USER_DATA_DIR = os.path.expanduser("~/Desktop/Chrome_Bot_Data_TK")
 LOG_DIR = f"log/tiktok/{PROJECT_NAME}/{str(datetime.date.today())}/{FLAG}"
 TARGET_VIDEO_FILE = f"{LOG_DIR}/target_videos.txt"
 TARGET_INTERACTIONS_FILE = f"{LOG_DIR}/interactions.csv"
