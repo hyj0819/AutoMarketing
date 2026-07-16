@@ -182,7 +182,7 @@ def create_scrape_task(data: TaskScrapeCreate, db: Session = Depends(get_db)):
     )
     db.commit()
 
-    task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone().id
+    task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
     return get_task(task_id, db)
 
 
@@ -232,7 +232,7 @@ def create_message_task(data: TaskMessageCreate, db: Session = Depends(get_db)):
     )
     db.commit()
 
-    task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone().id
+    task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
     return get_task(task_id, db)
 
 
@@ -277,7 +277,7 @@ def create_reply_task(data: TaskReplyCreate, db: Session = Depends(get_db)):
     )
     db.commit()
 
-    task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone().id
+    task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
     return get_task(task_id, db)
 
 
