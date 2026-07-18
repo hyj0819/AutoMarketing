@@ -151,6 +151,8 @@ def create_scrape_task(data: TaskScrapeCreate, db: Session = Depends(get_db)):
             "keywords": data.keywords,
             "content_types": data.content_types,
             "max_items_per_keyword": data.max_items_per_keyword,
+            "max_comments_per_video": data.max_comments_per_video,
+            "timeout_seconds": data.timeout_seconds,
             "ai_filter_enabled": data.ai_filter_enabled,
             "ai_prompt_template_id": data.ai_prompt_template_id,
             "exclude_author": data.exclude_author,
@@ -180,9 +182,10 @@ def create_scrape_task(data: TaskScrapeCreate, db: Session = Depends(get_db)):
             "account_id": data.account_id,
         },
     )
-    db.commit()
-
+    # 必须在 commit 之前、同一连接的事务内读取 last_insert_rowid()，
+    # 否则 commit 后会话可能切换到连接池中的其他连接，导致返回 0（连接级函数）
     task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
+    db.commit()
     return get_task(task_id, db)
 
 
@@ -230,9 +233,10 @@ def create_message_task(data: TaskMessageCreate, db: Session = Depends(get_db)):
             "account_id": data.account_id,
         },
     )
-    db.commit()
-
+    # 必须在 commit 之前、同一连接的事务内读取 last_insert_rowid()，
+    # 否则 commit 后会话可能切换到连接池中的其他连接，导致返回 0（连接级函数）
     task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
+    db.commit()
     return get_task(task_id, db)
 
 
@@ -275,22 +279,52 @@ def create_reply_task(data: TaskReplyCreate, db: Session = Depends(get_db)):
             "account_id": data.account_id,
         },
     )
-    db.commit()
-
+    # 必须在 commit 之前、同一连接的事务内读取 last_insert_rowid()，
+    # 否则 commit 后会话可能切换到连接池中的其他连接，导致返回 0（连接级函数）
     task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
+    db.commit()
     return get_task(task_id, db)
 
 
-@router.post("/{task_id}/stop", response_model=ApiResponse[TaskExecutionResponse])
-def stop_task(task_id: int, db: Session = Depends(get_db)):
-    """停止任务"""
+@router.post("/{task_id}/start", response_model=ApiResponse[TaskExecutionResponse])
+def start_task(task_id: int, db: Session = Depends(get_db)):
+    """启动任务：将 pending 任务加入执行队列（pending -> queued），由 worker 认领执行"""
     row = db.execute(
         text("SELECT * FROM task_executions WHERE id = :id"), {"id": task_id}
     ).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="任务不存在")
-    if row.status != "running":
-        raise HTTPException(status_code=400, detail="只能停止运行中的任务")
+    if row.status != "pending":
+        raise HTTPException(status_code=400, detail="只能启动待执行(pending)状态的任务")
+
+    db.execute(
+        text(
+            "UPDATE task_executions SET status = 'queued', updated_at = CURRENT_TIMESTAMP WHERE id = :id"
+        ),
+        {"id": task_id},
+    )
+    # 写入日志
+    db.execute(
+        text(
+            "INSERT INTO task_logs (task_id, log_level, message) VALUES (:task_id, 'info', '任务已加入执行队列')"
+        ),
+        {"task_id": task_id},
+    )
+    db.commit()
+
+    return get_task(task_id, db)
+
+
+@router.post("/{task_id}/stop", response_model=ApiResponse[TaskExecutionResponse])
+def stop_task(task_id: int, db: Session = Depends(get_db)):
+    """停止任务（允许停止排队中或运行中的任务）"""
+    row = db.execute(
+        text("SELECT * FROM task_executions WHERE id = :id"), {"id": task_id}
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if row.status not in ("queued", "running"):
+        raise HTTPException(status_code=400, detail="只能停止排队中或运行中的任务")
 
     db.execute(
         text(
@@ -312,7 +346,11 @@ def stop_task(task_id: int, db: Session = Depends(get_db)):
 
 @router.post("/{task_id}/retry", response_model=ApiResponse[TaskExecutionResponse])
 def retry_task(task_id: int, db: Session = Depends(get_db)):
-    """重试失败任务（复制配置创建新任务）"""
+    """重试失败任务：在原任务上重置并重新入队（不新建记录）
+
+    将 failed/cancelled 的任务重置为 queued，清空进度与错误信息、时间戳，
+    由 worker 重新认领执行；保留原 task_config 与统计口径。
+    """
     row = db.execute(
         text("SELECT * FROM task_executions WHERE id = :id"), {"id": task_id}
     ).fetchone()
@@ -321,41 +359,33 @@ def retry_task(task_id: int, db: Session = Depends(get_db)):
     if row.status not in ("failed", "cancelled"):
         raise HTTPException(status_code=400, detail="只能重试失败或已取消的任务")
 
-    # 复制配置创建新任务
-    new_name = f"{row.task_name or '任务'}(重试)"
-    insert_sql = text("""
-        INSERT INTO task_executions
-            (task_name, task_type, business_line_id, status, task_config,
-             total_items, pending_items, account_id)
-        VALUES
-            (:task_name, :task_type, :business_line_id, 'pending', :task_config,
-             :total_items, :total_items, :account_id)
-    """)
+    # 原地重置：清空进度/结果/错误/时间，重新入队
     db.execute(
-        insert_sql,
-        {
-            "task_name": new_name,
-            "task_type": row.task_type,
-            "business_line_id": row.business_line_id,
-            "task_config": row.task_config,
-            "total_items": row.total_items,
-            "account_id": row.account_id,
-        },
+        text("""
+            UPDATE task_executions
+            SET status = 'queued',
+                progress = 0,
+                success_items = 0,
+                failed_items = 0,
+                pending_items = total_items,
+                error_message = NULL,
+                start_time = NULL,
+                end_time = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+        """),
+        {"id": task_id},
     )
-    db.commit()
-
-    new_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone().id
-
     # 写入日志
     db.execute(
         text(
-            "INSERT INTO task_logs (task_id, log_level, message) VALUES (:task_id, 'info', :msg)"
+            "INSERT INTO task_logs (task_id, log_level, message) VALUES (:task_id, 'info', '任务已重新加入执行队列（原地重试）')"
         ),
-        {"task_id": new_id, "msg": f"从任务 #{task_id} 重试创建"},
+        {"task_id": task_id},
     )
     db.commit()
 
-    return get_task(new_id, db)
+    return get_task(task_id, db)
 
 
 @router.delete("/{task_id}", response_model=ApiResponse[dict])

@@ -72,10 +72,26 @@ async def get_video_data(container, keyword):
         return None
 
 # ==================== 核心逻辑 ====================
-async def search_keywords(page, keyword):
+async def search_keywords(page, keyword, max_items=None, log_fn=None):
+    """
+    搜索关键词并采集视频列表。
+
+    :param max_items: 采集上限，达到即停止滚动（None=不限制）
+    :param log_fn: 可选日志回调 log_fn(level, message)，用于把过程日志转发到任务详情页；
+                   为 None 时仅走 print（保证脚本可独立运行）。
+    """
+
+    def _log(level, msg):
+        print(msg)
+        if log_fn:
+            try:
+                log_fn(level, msg)
+            except Exception:
+                pass
+
     url = f"https://www.tiktok.com/search/video?q={keyword.replace(' ', '%20')}"
     print(f"🌐 正在检索关键词: {keyword}， 链接：{url}")
-    
+
     await page.goto(url, wait_until="domcontentloaded")
     await asyncio.sleep(4) 
 
@@ -92,7 +108,7 @@ async def search_keywords(page, keyword):
             #print(f"⏳ 轮次 {i+1}: 等待元素加载...")
             await page.wait_for_selector(ITEM_SELECTOR, state="attached", timeout=10000)
         except Exception as e:
-            print(f"⚠️ 轮次 {i+1}: 未检测到元素")
+            _log("warn", f"⚠️ 轮次 {i+1}: 未检测到元素")
         
         # --- 核心改进：强制获取焦点并多手段滚动 ---
         # 1. 点击屏幕中心，确保滚动指令发送到主信息流
@@ -124,7 +140,6 @@ async def search_keywords(page, keyword):
         new_count_in_round = 0
         for container in current_containers:
             data = await get_video_data(container, keyword)
-            print(f'data:{data}')
             # 使用视频链接作为唯一标识去重
             if data and data["Video_Link"] and data["Video_Link"] not in captured_links:
                 captured_links.add(data["Video_Link"])
@@ -132,13 +147,19 @@ async def search_keywords(page, keyword):
                 new_count_in_round += 1
                 # print(f'成功抓取: {data["Author_ID"]} - {data["Video_Link"]}')
         
-        print(f"   📥 轮次 {i+1}: 新增 {new_count_in_round} 条 | 总计 {len(results)} 条")
+        _log("info", f"📥 轮次 {i+1}: 新增 {new_count_in_round} 条 | 总计 {len(results)} 条")
+
+        # B：达到采集上限即停止（够数即停）
+        if max_items and len(results) >= max_items:
+            results = results[:max_items]
+            _log("info", f"✅ 已达到采集上限 {max_items} 条，停止滚动")
+            break
 
         # 6. 连续空跳退出逻辑
         if new_count_in_round == 0:
             consecutive_zero_count += 1
             if consecutive_zero_count >= STUCK_THRESHOLD:
-                print(f"   🛑 连续 {STUCK_THRESHOLD} 次未发现新内容，停止滚动。")
+                _log("info", f"🛑 连续 {STUCK_THRESHOLD} 次未发现新内容，停止滚动。")
                 break
         else:
             consecutive_zero_count = 0 

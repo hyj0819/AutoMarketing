@@ -1,6 +1,2 @@
-2026/06/27-18:57:38.958 16062e Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage/MANIFEST-000001
-2026/06/27-18:57:38.959 16062e Recovering log #3
-2026/06/27-18:57:38.959 16062e Reusing old log /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage/000003.log 
-2026/06/27-19:04:43.068 160632 Level-0 table #5: started
-2026/06/27-19:04:43.072 160632 Level-0 table #5: 24146 bytes OK
-2026/06/27-19:04:43.075 160632 Delete type=0 #3
+2026/07/18-23:16:21.392 143cf2 Creating DB /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage since it was missing.
+2026/07/18-23:16:21.406 143cf2 Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage/MANIFEST-000001

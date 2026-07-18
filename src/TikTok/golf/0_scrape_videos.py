@@ -55,7 +55,7 @@ async def main():
         context = await p.chromium.launch_persistent_context(
             USER_DATA_DIR,
             channel="chrome",
-            headless=False,
+            headless=True,
             no_viewport=True,
             args=["--disable-blink-features=AutomationControlled"]
         )

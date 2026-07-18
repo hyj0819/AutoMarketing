@@ -21,3 +21,17 @@ pydantic==2.9.0
 # 认证
 bcrypt==5.0.0
 python-jose[cryptography]==3.5.0
+
+# ==================== 任务执行 Worker（爬虫 Pipeline）====================
+# 以下依赖由 src/worker/pipelines 及其复用的 src/TikTok/common、src/utils/common_utils 使用，
+# 运行 worker.py 执行 scrape 任务时必需（仅运行 API 时可不安装）。
+# 浏览器自动化
+playwright>=1.40.0
+# AI 意图筛选（DeepSeek，OpenAI 兼容客户端）
+openai>=1.0.0
+# 数据处理（爬虫脚本）
+pandas>=2.0.0
+# common_utils 顶层依赖
+openpyxl>=3.1.0
+Pillow>=10.0.0
+python-dateutil>=2.8.0

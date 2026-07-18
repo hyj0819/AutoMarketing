@@ -2,7 +2,7 @@
 任务执行 Schema
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 
 
@@ -15,10 +15,21 @@ class TaskScrapeCreate(BaseModel):
     keywords: List[str] = Field(..., min_items=1, description="关键词列表")
     content_types: List[str] = Field(default=["video", "comment"], description="内容类型: video/comment/post")
     max_items_per_keyword: int = Field(default=50, ge=1, le=500)
+    max_comments_per_video: int = Field(default=0, ge=0, le=500, description="每视频评论上限，0=不限制")
+    timeout_seconds: int = Field(default=60, ge=10, le=300, description="页面操作超时时间(秒)，默认60秒")
     ai_filter_enabled: bool = True
     ai_prompt_template_id: Optional[int] = None
     exclude_author: bool = True
     account_id: Optional[int] = None
+
+    @field_validator("content_types")
+    @classmethod
+    def validate_content_types(cls, v):
+        valid_types = {"video", "comment"}
+        filtered = [t for t in v if t in valid_types]
+        if not filtered:
+            raise ValueError("内容类型至少需包含 video 或 comment 之一")
+        return filtered
 
 
 class TaskMessageCreate(BaseModel):
