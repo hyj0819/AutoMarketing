@@ -55,7 +55,9 @@ async def main():
         context = await p.chromium.launch_persistent_context(
             USER_DATA_DIR,
             channel="chrome",
-            headless=True,
+            # TikTok frequently withholds comments from a headless session. Keep the
+            # persistent profile visible by default so its login state is usable.
+            headless=os.environ.get("TIKTOK_HEADLESS", "0") == "1",
             no_viewport=True,
             args=["--disable-blink-features=AutomationControlled"]
         )
