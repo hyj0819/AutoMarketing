@@ -1,3 +1,5 @@
-2026/07/19-23:12:24.885 17ff52 Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/MANIFEST-000001
-2026/07/19-23:12:24.889 17ff52 Recovering log #66
-2026/07/19-23:12:24.889 17ff52 Reusing old log /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/000066.log 
+2026/07/21-22:23:35.739 55ae2 Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/MANIFEST-000001
+2026/07/21-22:23:35.749 55ae2 Recovering log #80
+2026/07/21-22:23:35.752 55ae2 Level-0 table #84: started
+2026/07/21-22:23:35.757 55ae2 Level-0 table #84: 23453 bytes OK
+2026/07/21-22:23:35.763 55ae2 Delete type=0 #80

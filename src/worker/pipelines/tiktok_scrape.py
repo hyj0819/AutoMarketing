@@ -75,6 +75,26 @@ def _load_prompt_template(template_id: int | None) -> str | None:
         db.close()
 
 
+def _load_prompt_by_business_line(business_line_id: int, template_code: str) -> str | None:
+    """根据业务线ID和模板编码加载激活的提示词模板内容"""
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            text(
+                """
+                SELECT template_content FROM prompt_templates
+                WHERE business_line_id = :business_line_id
+                  AND template_code = :template_code
+                  AND is_active = 1
+                """
+            ),
+            {"business_line_id": business_line_id, "template_code": template_code},
+        ).fetchone()
+        return row.template_content if row else None
+    finally:
+        db.close()
+
+
 def _save_content(platform_id: int, business_line_id: int, video: dict, keyword: str):
     """写入视频到 contents（INSERT OR IGNORE，去重键 platform_id+content_id）"""
     db = SessionLocal()
@@ -190,9 +210,15 @@ async def run_scrape(task: dict, ctx):
         raise ValueError("任务配置缺少 keywords")
 
     platform_id, business_line_id = _load_business_context(task["business_line_id"])
-    prompt_template = _load_prompt_template(ai_prompt_template_id) if ai_filter_enabled else None
+    
+    prompt_template = None
+    if ai_filter_enabled:
+        if ai_prompt_template_id:
+            prompt_template = _load_prompt_template(ai_prompt_template_id)
+        if not prompt_template:
+            prompt_template = _load_prompt_by_business_line(business_line_id, "golf_purchase_intent")
     if ai_filter_enabled and not prompt_template:
-        ctx.log("warn", f"未找到提示词模板 #{ai_prompt_template_id}，将跳过 AI 筛选")
+        ctx.log("warn", f"未找到提示词模板，将跳过 AI 筛选")
         ai_filter_enabled = False
 
     deepseek_key = config.get_deepseek_api_key() if ai_filter_enabled else ""
@@ -207,7 +233,6 @@ async def run_scrape(task: dict, ctx):
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
             profile_dir,
-            channel="chrome",
             headless=headless,
             no_viewport=True,
             args=["--disable-blink-features=AutomationControlled"],
@@ -309,11 +334,7 @@ async def run_scrape(task: dict, ctx):
 
                 is_potential = True
                 if ai_filter_enabled:
-                    prompt = (
-                        f"{prompt_template}\n\n"
-                        f"【标题内容】: {item['title']}\n\n"
-                        f"【评论内容】: {item['text']}"
-                    )
+                    prompt = prompt_template.replace("{{v_title}}", item["title"]).replace("{{comment_text}}", item["text"])
                     try:
                         answer = await asyncio.to_thread(
                             get_text_response_ds,

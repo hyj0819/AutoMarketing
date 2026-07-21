@@ -1,34 +1,3 @@
-2026/07/19-17:43:02.160 d35af Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/MANIFEST-000001
-2026/07/19-17:43:02.164 d35af Recovering log #50
-2026/07/19-17:43:02.165 d35af Level-0 table #54: started
-2026/07/19-17:43:02.175 d35af Level-0 table #54: 45207 bytes OK
-2026/07/19-17:43:02.175 d35af Recovering log #53
-2026/07/19-17:43:02.176 d35af Reusing old log /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/000053.log 
-2026/07/19-17:43:02.187 d35af Delete type=0 #50
-2026/07/19-17:45:05.074 d35b2 Level-0 table #56: started
-2026/07/19-17:45:05.077 d35b2 Level-0 table #56: 51894 bytes OK
-2026/07/19-17:45:05.082 d35b2 Delete type=0 #53
-2026/07/19-17:47:05.075 d35b2 Level-0 table #58: started
-2026/07/19-17:47:05.085 d35b2 Level-0 table #58: 51535 bytes OK
-2026/07/19-17:47:05.092 d35b2 Delete type=0 #55
-2026/07/19-17:49:05.068 d35b2 Level-0 table #60: started
-2026/07/19-17:49:05.070 d35b2 Level-0 table #60: 52137 bytes OK
-2026/07/19-17:49:05.073 d35b2 Delete type=0 #57
-2026/07/19-17:49:05.074 d35af Compacting 4@0 + 1@1 files
-2026/07/19-17:49:05.081 d35af Generated table #61@0: 86 keys, 187544 bytes
-2026/07/19-17:49:05.081 d35af Compacted 4@0 + 1@1 files => 187544 bytes
-2026/07/19-17:49:05.082 d35af compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/07/19-17:49:05.082 d35af Delete type=2 #60
-2026/07/19-17:49:05.082 d35af Delete type=2 #58
-2026/07/19-17:49:05.082 d35af Delete type=2 #56
-2026/07/19-17:49:05.082 d35af Delete type=2 #54
-2026/07/19-17:49:05.082 d35af Delete type=2 #52
-2026/07/19-17:50:05.066 d35b2 Level-0 table #63: started
-2026/07/19-17:50:05.075 d35b2 Level-0 table #63: 55523 bytes OK
-2026/07/19-17:50:05.083 d35b2 Delete type=0 #59
-2026/07/19-17:51:05.067 d35b2 Level-0 table #65: started
-2026/07/19-17:51:05.071 d35b2 Level-0 table #65: 53378 bytes OK
-2026/07/19-17:51:05.075 d35b2 Delete type=0 #62
-2026/07/19-17:51:46.805 d35b2 Level-0 table #67: started
-2026/07/19-17:51:46.807 d35b2 Level-0 table #67: 33723 bytes OK
-2026/07/19-17:51:46.812 d35b2 Delete type=0 #64
+2026/07/21-22:18:07.288 52d91 Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/MANIFEST-000001
+2026/07/21-22:18:07.292 52d91 Recovering log #80
+2026/07/21-22:18:07.293 52d91 Reusing old log /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/000080.log 

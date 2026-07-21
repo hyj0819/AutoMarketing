@@ -32,8 +32,8 @@ def get_poll_interval() -> int:
 
 
 def is_headless() -> bool:
-    """是否无头运行浏览器，默认 False（有头，便于扫码/登录态维持）"""
-    return os.getenv("WORKER_HEADLESS", "false").strip().lower() in ("1", "true", "yes")
+    """是否无头运行浏览器，默认 True（无头，不打开浏览器窗口）"""
+    return os.getenv("WORKER_HEADLESS", "true").strip().lower() in ("1", "true", "yes")
 
 
 def resolve_chrome_profile(business_line_config: str | None, platform_code: str) -> str:

@@ -7,9 +7,13 @@ import csv
 
 sys.path.append('src/TikTok/common')
 from search_keywords_v0 import search_keywords
-from scrape_reviews_v0 import scrape_comments, batch_scrape_comments  # ✅ 用新版
+from scrape_reviews_v0 import scrape_comments, batch_scrape_comments
 sys.path.append('src/utils')
 from common_utils import get_text_response_ds, load_contacted_users
+
+sys.path.append('src')
+from core.database import SessionLocal
+from sqlalchemy import text
 
 # ==================== 基础配置 ====================
 PROJECT_NAME = "golf"
@@ -38,6 +42,27 @@ KEYWORDS = [
 MESSAGES = []
 
 
+def load_prompt_by_business_line(business_line_code: str, template_code: str) -> str | None:
+    """根据业务线编码和模板编码加载激活的提示词模板内容"""
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            text(
+                """
+                SELECT pt.template_content FROM prompt_templates pt
+                JOIN business_lines bl ON pt.business_line_id = bl.id
+                WHERE bl.code = :business_line_code
+                  AND pt.template_code = :template_code
+                  AND pt.is_active = 1
+                """
+            ),
+            {"business_line_code": business_line_code, "template_code": template_code},
+        ).fetchone()
+        return row.template_content if row else None
+    finally:
+        db.close()
+
+
 async def main():
     contacted_users = load_contacted_users(CONTACTED_USERS_FILE)
     all_potential_leads = []
@@ -50,14 +75,18 @@ async def main():
         print(f"deepseek api key not found in {API_KEY_FILE}")
         exit(1)
 
+    purchase_intent_prompt = load_prompt_by_business_line(PROJECT_NAME, "golf_purchase_intent")
+    if not purchase_intent_prompt:
+        print(f"未找到业务线 [{PROJECT_NAME}] 的购买意图分析提示词模板，将跳过 AI 筛选")
+        ai_filter_enabled = False
+    else:
+        ai_filter_enabled = True
+
     from playwright.async_api import async_playwright
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
             USER_DATA_DIR,
-            channel="chrome",
-            # TikTok frequently withholds comments from a headless session. Keep the
-            # persistent profile visible by default so its login state is usable.
-            headless=os.environ.get("TIKTOK_HEADLESS", "0") == "1",
+            headless=os.environ.get("TIKTOK_HEADLESS", "1") == "1",
             no_viewport=True,
             args=["--disable-blink-features=AutomationControlled"]
         )
@@ -103,29 +132,15 @@ async def main():
                 if not v_title.strip() or not c['text'].strip():
                     continue
 
-                prompt = (
-                    "【角色】\n"
-                    "你是一位拥有 10 年经验的高尔夫行业资深市场分析师，擅长通过社交媒体的碎片化信息捕捉用户的购买信号（Buying Signals）。\n\n"
-                    "【任务】\n"
-                    "我将为你提供 TikTok 视频的【标题内容】和用户的【评论内容】。请你分析该用户是否有购买室内高尔夫模拟器的潜在意图。\n\n"
-                    "【判定维度】\n"
-                    "请基于以下几个维度进行判断（判断标准需要严格一些，得要有比较明确的购买信号）：\n"
-                    "1、用户是否在咨询购买意见/寻求推荐。\n"
-                    "2、用户是否在抱怨现有设备的问题，或表达了具体的环境限制（如天气、空间）。\n"
-                    "3、用户是否询问了关于价格、品牌、参数、安装或软件兼容性的问题。\n"
-                    "4、用户是否提到了自己的家庭环境（如车库、地下室、办公室）。\n"
-                    "5、用户是否表达了强烈的羡慕或“我也想要一套”的愿望。\n\n"
-                    "【输出格式】\n"
-                    "请直接输出yes或者no，不需要其他说明。\n\n"
-                    f"【标题内容】: {v_title}\n\n"
-                    f"【评论内容】: {c['text']}"
-                )
-                is_potential = get_text_response_ds(
-                    "你是一个获客专家。请简洁判断。", prompt,
-                    api_key=api_keys["deepseek"]["api_key"]
-                )
+                is_potential = True
+                if ai_filter_enabled:
+                    prompt = purchase_intent_prompt.replace("{{v_title}}", v_title).replace("{{comment_text}}", c["text"])
+                    is_potential = get_text_response_ds(
+                        "你是一个获客专家。请简洁判断。", prompt,
+                        api_key=api_keys["deepseek"]["api_key"]
+                    ).lower() == 'yes'
 
-                if is_potential.lower() == 'yes':
+                if is_potential:
                     all_potential_leads.append({
                         "User_ID": uid,
                         "User_Page": c.get('upage'),
