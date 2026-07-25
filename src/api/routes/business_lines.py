@@ -2,6 +2,9 @@
 业务线配置路由
 """
 
+import time
+import random
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -12,6 +15,13 @@ from src.api.schemas.common import ApiResponse
 from src.api.schemas.business_line import BusinessLineCreate, BusinessLineUpdate, BusinessLineResponse
 
 router = APIRouter()
+
+
+def _generate_business_line_code() -> str:
+    """生成业务线编码，格式: bl_{timestamp后8位}_{随机4位数字}"""
+    ts = str(int(time.time()))[-8:]
+    rand = str(random.randint(1000, 9999))
+    return f"bl_{ts}_{rand}"
 
 
 @router.get("/", response_model=ApiResponse[List[BusinessLineResponse]])
@@ -70,13 +80,15 @@ def create_business_line(data: BusinessLineCreate, db: Session = Depends(get_db)
     if not cursor.fetchone():
         raise HTTPException(status_code=404, detail="平台不存在")
     
+    line_code = data.code or _generate_business_line_code()
+    
     try:
         query = text("""INSERT INTO business_lines (platform_id, code, name, status, config)
            VALUES (:platform_id, :code, :name, :status, :config)""")
         
         cursor = db.execute(query, {
             "platform_id": data.platform_id,
-            "code": data.code,
+            "code": line_code,
             "name": data.name,
             "status": data.status,
             "config": data.config

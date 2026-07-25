@@ -2,6 +2,9 @@
 提示词模板管理路由
 """
 
+import time
+import random
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -12,6 +15,13 @@ from src.api.schemas.common import ApiResponse
 from src.api.schemas.prompt_template import PromptTemplateCreate, PromptTemplateUpdate, PromptTemplateResponse
 
 router = APIRouter()
+
+
+def _generate_template_code() -> str:
+    """生成提示词模板编码，格式: pt_{timestamp后8位}_{随机4位数字}"""
+    ts = str(int(time.time()))[-8:]
+    rand = str(random.randint(1000, 9999))
+    return f"pt_{ts}_{rand}"
 
 # 通用 JOIN 查询片段
 _JOIN_BL = """
@@ -85,13 +95,15 @@ def create_prompt_template(data: PromptTemplateCreate, db: Session = Depends(get
     if not cursor.fetchone():
         raise HTTPException(status_code=404, detail="业务线不存在")
 
+    template_code = data.template_code or _generate_template_code()
+
     try:
         query = text("""INSERT INTO prompt_templates (business_line_id, template_code, name, template_content, variables, version, status, is_active)
            VALUES (:business_line_id, :template_code, :name, :template_content, :variables, :version, :status, :is_active)""")
 
         cursor = db.execute(query, {
             "business_line_id": data.business_line_id,
-            "template_code": data.template_code,
+            "template_code": template_code,
             "name": data.name,
             "template_content": data.template_content,
             "variables": data.variables,

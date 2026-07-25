@@ -2,6 +2,9 @@
 平台配置路由
 """
 
+import time
+import random
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -12,6 +15,13 @@ from src.api.schemas.common import ApiResponse
 from src.api.schemas.platform import PlatformCreate, PlatformUpdate, PlatformResponse
 
 router = APIRouter()
+
+
+def _generate_platform_code() -> str:
+    """生成平台编码，格式: platform_{timestamp后8位}_{随机4位数字}"""
+    ts = str(int(time.time()))[-8:]
+    rand = str(random.randint(1000, 9999))
+    return f"platform_{ts}_{rand}"
 
 
 @router.get("/", response_model=ApiResponse[List[PlatformResponse]])
@@ -44,21 +54,21 @@ def list_platforms(status: Optional[int] = None, db: Session = Depends(get_db)):
 @router.post("/", response_model=ApiResponse[PlatformResponse])
 def create_platform(data: PlatformCreate, db: Session = Depends(get_db)):
     """创建平台"""
+    platform_code = data.code or _generate_platform_code()
+    
     try:
         query = text("""INSERT INTO platforms (code, name, status, config)
            VALUES (:code, :name, :status, :config)""")
         
-        db.execute(query, {
-            "code": data.code,
+        cursor = db.execute(query, {
+            "code": platform_code,
             "name": data.name,
             "status": data.status,
             "config": data.config
         })
         db.commit()
         
-        query = text("SELECT last_insert_rowid() as id")
-        cursor = db.execute(query)
-        platform_id = cursor.fetchone()[0]
+        platform_id = cursor.lastrowid
         
         query = text("SELECT * FROM platforms WHERE id = :id")
         cursor = db.execute(query, {"id": platform_id})
@@ -76,7 +86,7 @@ def create_platform(data: PlatformCreate, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         if "UNIQUE constraint" in str(e):
-            return ApiResponse(code=400, message=f"平台编码 '{data.code}' 已存在")
+            return ApiResponse(code=400, message=f"平台编码 '{platform_code}' 已存在")
         raise
 
 

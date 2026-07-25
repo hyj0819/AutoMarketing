@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 class BusinessLineBase(BaseModel):
     """业务线基础字段"""
-    code: str = Field(..., description="业务线代码")
     name: str = Field(..., description="业务线名称")
     status: int = Field(1, description="状态: 0-禁用 1-启用")
     config: Optional[str] = Field(None, description="配置JSON")
@@ -17,6 +16,7 @@ class BusinessLineBase(BaseModel):
 class BusinessLineCreate(BusinessLineBase):
     """创建业务线"""
     platform_id: int = Field(..., description="平台ID")
+    code: Optional[str] = Field(None, description="业务线代码（不传则自动生成）")
 
 
 class BusinessLineUpdate(BaseModel):

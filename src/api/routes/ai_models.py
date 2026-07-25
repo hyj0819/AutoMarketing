@@ -43,16 +43,10 @@ def list_ai_models(
         models.append(AIModelResponse(
             id=row.id,
             provider=row.provider,
-            model_name=row.model_name,
             api_key_masked=mask_api_key(api_key) if api_key else "",
-            base_url=row.base_url,
-            max_tokens=row.max_tokens,
-            temperature=row.temperature,
-            top_p=row.top_p,
-            extra_params=row.extra_params,
+            api_url=row.api_url,
             is_active=row.is_active,
             status=row.status,
-            description=row.description,
             created_at=str(row.created_at),
             updated_at=str(row.updated_at)
         ))
@@ -74,16 +68,10 @@ def get_ai_model(model_id: int, db: Session = Depends(get_db)):
     return ApiResponse(result=AIModelResponse(
         id=row.id,
         provider=row.provider,
-        model_name=row.model_name,
         api_key_masked=mask_api_key(api_key) if api_key else "",
-        base_url=row.base_url,
-        max_tokens=row.max_tokens,
-        temperature=row.temperature,
-        top_p=row.top_p,
-        extra_params=row.extra_params,
+        api_url=row.api_url,
         is_active=row.is_active,
         status=row.status,
-        description=row.description,
         created_at=str(row.created_at),
         updated_at=str(row.updated_at)
     ))
@@ -95,31 +83,23 @@ def create_ai_model(data: AIModelCreate, db: Session = Depends(get_db)):
     encrypted_key = encrypt_api_key(data.api_key)
     
     query = text("""INSERT INTO ai_models 
-       (provider, model_name, api_key_encrypted, base_url, max_tokens, temperature, top_p, extra_params, description)
-       VALUES (:provider, :model_name, :api_key_encrypted, :base_url, :max_tokens, :temperature, :top_p, :extra_params, :description)""")
+       (provider, api_key_encrypted, api_url)
+       VALUES (:provider, :api_key_encrypted, :api_url)""")
     
     try:
-        db.execute(query, {
+        cursor = db.execute(query, {
             "provider": data.provider,
-            "model_name": data.model_name,
             "api_key_encrypted": encrypted_key,
-            "base_url": data.base_url,
-            "max_tokens": data.max_tokens,
-            "temperature": data.temperature,
-            "top_p": data.top_p,
-            "extra_params": data.extra_params,
-            "description": data.description
+            "api_url": data.api_url
         })
         db.commit()
     except Exception as e:
         db.rollback()
         if "UNIQUE constraint failed" in str(e):
-            return ApiResponse(code=400, message=f"模型 {data.provider}/{data.model_name} 已存在")
+            return ApiResponse(code=400, message=f"模型 {data.provider} 已存在")
         raise
     
-    query = text("SELECT last_insert_rowid() as id")
-    cursor = db.execute(query)
-    model_id = cursor.fetchone()[0]
+    model_id = cursor.lastrowid
     
     return get_ai_model(model_id, db)
 
@@ -140,27 +120,12 @@ def update_ai_model(model_id: int, data: AIModelUpdate, db: Session = Depends(ge
     if data.api_key is not None:
         updates.append("api_key_encrypted = :api_key_encrypted")
         params["api_key_encrypted"] = encrypt_api_key(data.api_key)
-    if data.base_url is not None:
-        updates.append("base_url = :base_url")
-        params["base_url"] = data.base_url
-    if data.max_tokens is not None:
-        updates.append("max_tokens = :max_tokens")
-        params["max_tokens"] = data.max_tokens
-    if data.temperature is not None:
-        updates.append("temperature = :temperature")
-        params["temperature"] = data.temperature
-    if data.top_p is not None:
-        updates.append("top_p = :top_p")
-        params["top_p"] = data.top_p
-    if data.extra_params is not None:
-        updates.append("extra_params = :extra_params")
-        params["extra_params"] = data.extra_params
+    if data.api_url is not None:
+        updates.append("api_url = :api_url")
+        params["api_url"] = data.api_url
     if data.status is not None:
         updates.append("status = :status")
         params["status"] = data.status
-    if data.description is not None:
-        updates.append("description = :description")
-        params["description"] = data.description
     
     if updates:
         updates.append("updated_at = CURRENT_TIMESTAMP")
@@ -231,14 +196,13 @@ def test_ai_model(model_id: int, data: TestAIModelRequest = None, db: Session = 
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         
         payload = {
-            "model": row.model_name,
             "messages": [{"role": "user", "content": test_prompt}],
-            "max_tokens": row.max_tokens,
-            "temperature": row.temperature / 100
+            "max_tokens": 100,
+            "temperature": 0.7
         }
         
         with httpx.Client(timeout=30) as client:
-            response = client.post(f"{row.base_url}/chat/completions", headers=headers, json=payload)
+            response = client.post(f"{row.api_url}/chat/completions", headers=headers, json=payload)
             response.raise_for_status()
             result = response.json()
             return ApiResponse(result=TestAIModelResponse(

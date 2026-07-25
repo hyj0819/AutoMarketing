@@ -9,7 +9,7 @@ from typing import Optional
 class PromptTemplateCreate(BaseModel):
     """创建提示词模板"""
     business_line_id: int
-    template_code: str
+    template_code: Optional[str] = None
     name: str
     template_content: str
     variables: Optional[str] = None

@@ -388,6 +388,46 @@ def retry_task(task_id: int, db: Session = Depends(get_db)):
     return get_task(task_id, db)
 
 
+@router.delete("/batch", response_model=ApiResponse[dict])
+def delete_tasks_batch(task_ids: str = None, db: Session = Depends(get_db)):
+    """批量删除任务（运行中的任务会被跳过）"""
+    if not task_ids:
+        return ApiResponse(result={"message": "未选择任何任务", "deleted_count": 0, "skipped_count": 0})
+
+    ids_list = [int(id.strip()) for id in task_ids.split(",") if id.strip()]
+    
+    ids_str = ",".join(str(id) for id in ids_list)
+    rows = db.execute(
+        text(f"SELECT id, status FROM task_executions WHERE id IN ({ids_str})")
+    ).fetchall()
+
+    delete_ids = [row.id for row in rows if row.status != "running"]
+    skip_ids = [row.id for row in rows if row.status == "running"]
+
+    if delete_ids:
+        delete_ids_str = ",".join(str(id) for id in delete_ids)
+        db.execute(
+            text(f"DELETE FROM contact_interactions WHERE task_execution_id IN ({delete_ids_str})")
+        )
+        db.execute(
+            text(f"DELETE FROM task_logs WHERE task_id IN ({delete_ids_str})")
+        )
+        db.execute(
+            text(f"DELETE FROM task_executions WHERE id IN ({delete_ids_str})")
+        )
+        db.commit()
+
+    message = f"成功删除 {len(delete_ids)} 个任务"
+    if skip_ids:
+        message += f"，{len(skip_ids)} 个运行中的任务已跳过"
+
+    return ApiResponse(result={
+        "message": message,
+        "deleted_count": len(delete_ids),
+        "skipped_count": len(skip_ids)
+    })
+
+
 @router.delete("/{task_id}", response_model=ApiResponse[dict])
 def delete_task(task_id: int, db: Session = Depends(get_db)):
     """删除任务（仅允许非 running 状态）"""
@@ -399,7 +439,7 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     if row.status == "running":
         raise HTTPException(status_code=400, detail="运行中的任务不允许删除，请先停止")
 
-    # 先删除关联日志
+    db.execute(text("DELETE FROM contact_interactions WHERE task_execution_id = :task_id"), {"task_id": task_id})
     db.execute(text("DELETE FROM task_logs WHERE task_id = :task_id"), {"task_id": task_id})
     db.execute(text("DELETE FROM task_executions WHERE id = :id"), {"id": task_id})
     db.commit()

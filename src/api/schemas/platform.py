@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 class PlatformBase(BaseModel):
     """平台基础字段"""
-    code: str = Field(..., description="平台代码")
     name: str = Field(..., description="平台名称")
     status: int = Field(1, description="状态: 0-禁用 1-启用")
     config: Optional[str] = Field(None, description="配置JSON")
@@ -16,7 +15,7 @@ class PlatformBase(BaseModel):
 
 class PlatformCreate(PlatformBase):
     """创建平台"""
-    pass
+    code: Optional[str] = Field(None, description="平台代码（不传则自动生成）")
 
 
 class PlatformUpdate(BaseModel):
