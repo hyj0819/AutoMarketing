@@ -455,7 +455,7 @@ def get_trend_data(
 # ──────────────────────────────────────────────
 # 以下为保留的原有接口
 # ──────────────────────────────────────────────
-@router.get("/contacts/by-platform", response_model=ApiResponse[Dict[str, Any]])
+@router.get("/contacts/by-platform", response_model=ApiResponse[List[Dict[str, Any]]])
 def get_contacts_by_platform(db: Session = Depends(get_db)):
     """获取各平台触达用户统计"""
     query = text("""
@@ -475,7 +475,7 @@ def get_contacts_by_platform(db: Session = Depends(get_db)):
     return ApiResponse(result=result)
 
 
-@router.get("/contacts/by-business-line", response_model=ApiResponse[Dict[str, Any]])
+@router.get("/contacts/by-business-line", response_model=ApiResponse[List[Dict[str, Any]]])
 def get_contacts_by_business_line(db: Session = Depends(get_db)):
     """获取各业务线触达用户统计"""
     query = text("""
@@ -494,7 +494,7 @@ def get_contacts_by_business_line(db: Session = Depends(get_db)):
     return ApiResponse(result=result)
 
 
-@router.get("/contents/by-platform", response_model=ApiResponse[Dict[str, Any]])
+@router.get("/contents/by-platform", response_model=ApiResponse[List[Dict[str, Any]]])
 def get_contents_by_platform(db: Session = Depends(get_db)):
     """获取各平台内容数据统计"""
     query = text("""
@@ -513,7 +513,7 @@ def get_contents_by_platform(db: Session = Depends(get_db)):
     return ApiResponse(result=result)
 
 
-@router.get("/tasks/recent", response_model=ApiResponse[Dict[str, Any]])
+@router.get("/tasks/recent", response_model=ApiResponse[List[Dict[str, Any]]])
 def get_recent_tasks(limit: int = 10, db: Session = Depends(get_db)):
     """获取最近任务执行记录"""
     query = text("""
@@ -535,7 +535,7 @@ def get_recent_tasks(limit: int = 10, db: Session = Depends(get_db)):
     return ApiResponse(result=result)
 
 
-@router.get("/keywords/top", response_model=ApiResponse[Dict[str, Any]])
+@router.get("/keywords/top", response_model=ApiResponse[List[Dict[str, Any]]])
 def get_top_keywords(limit: int = 10, db: Session = Depends(get_db)):
     """获取高频关键词"""
     query = text("""
