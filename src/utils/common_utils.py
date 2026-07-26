@@ -88,9 +88,9 @@ def parse_product_dimensions(dim_str):
     return (length, width, height, unit)
 
 
-def get_text_response_ds(context, prompt, model_name="deepseek-v4-flash", api_key=""):
+def get_text_response_ds(context, prompt, model_name="deepseek-v4-flash", api_key="", base_url="https://api.deepseek.com/v1"):
     try:
-        TEXT_CLIENT = OpenAI(api_key=api_key, base_url="https://api.deepseek.com/v1")
+        TEXT_CLIENT = OpenAI(api_key=api_key, base_url=base_url)
         title_response = TEXT_CLIENT.chat.completions.create(
             model=model_name,
             messages=[

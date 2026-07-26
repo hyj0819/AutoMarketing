@@ -14,6 +14,7 @@ from common_utils import get_text_response_ds, load_contacted_users
 sys.path.append('src')
 from core.database import SessionLocal
 from sqlalchemy import text
+from core.security import decrypt_api_key
 
 # ==================== 基础配置 ====================
 PROJECT_NAME = "golf"
@@ -63,6 +64,23 @@ def load_prompt_by_business_line(business_line_code: str, template_code: str) ->
         db.close()
 
 
+def load_active_ai_model() -> dict | None:
+    """从数据库获取激活的AI模型配置"""
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            text("SELECT api_key_encrypted, api_url FROM ai_models WHERE is_active = 1 LIMIT 1")
+        ).fetchone()
+        if not row:
+            return None
+        return {
+            "api_key": decrypt_api_key(row.api_key_encrypted),
+            "api_url": row.api_url
+        }
+    finally:
+        db.close()
+
+
 async def main():
     contacted_users = load_contacted_users(CONTACTED_USERS_FILE)
     all_potential_leads = []
@@ -70,9 +88,9 @@ async def main():
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR, exist_ok=True)
 
-    api_keys = json.load(open(API_KEY_FILE))
-    if "deepseek" not in api_keys or "api_key" not in api_keys["deepseek"]:
-        print(f"deepseek api key not found in {API_KEY_FILE}")
+    ai_model_config = load_active_ai_model()
+    if not ai_model_config or not ai_model_config["api_key"]:
+        print(f"未找到激活的AI模型配置，请在后台管理系统中配置AI模型")
         exit(1)
 
     purchase_intent_prompt = load_prompt_by_business_line(PROJECT_NAME, "golf_purchase_intent")
@@ -137,7 +155,8 @@ async def main():
                     prompt = purchase_intent_prompt.replace("{{v_title}}", v_title).replace("{{comment_text}}", c["text"])
                     is_potential = get_text_response_ds(
                         "你是一个获客专家。请简洁判断。", prompt,
-                        api_key=api_keys["deepseek"]["api_key"]
+                        api_key=ai_model_config["api_key"],
+                        base_url=ai_model_config["api_url"]
                     ).lower() == 'yes'
 
                 if is_potential:
@@ -183,7 +202,7 @@ async def main():
                     f"【帖子内容】：{lead['Source_Title']}\n\n"
                     f"【评论内容】：{lead['Comment']}"
                 )
-                message = get_text_response_ds("", prompt, api_key=api_keys["deepseek"]["api_key"])
+                message = get_text_response_ds("", prompt, api_key=ai_model_config["api_key"], base_url=ai_model_config["api_url"])
             else:
                 message = random.choice(MESSAGES)
 
