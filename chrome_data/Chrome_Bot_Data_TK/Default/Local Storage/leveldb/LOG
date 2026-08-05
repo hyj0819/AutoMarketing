@@ -1,14 +1,8 @@
-2026/07/26-15:37:48.906 268665 Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/MANIFEST-000001
-2026/07/26-15:37:48.909 268665 Recovering log #101
-2026/07/26-15:37:48.909 268665 Level-0 table #104: started
-2026/07/26-15:37:48.916 268665 Level-0 table #104: 25222 bytes OK
-2026/07/26-15:37:48.918 268665 Delete type=0 #101
-2026/07/26-15:37:48.925 268668 Compacting 4@0 + 1@1 files
-2026/07/26-15:37:48.932 268668 Generated table #106@0: 93 keys, 230335 bytes
-2026/07/26-15:37:48.933 268668 Compacted 4@0 + 1@1 files => 230335 bytes
-2026/07/26-15:37:48.935 268668 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/07/26-15:37:48.935 268668 Delete type=2 #102
-2026/07/26-15:37:48.935 268668 Delete type=2 #104
-2026/07/26-15:37:48.936 268668 Delete type=2 #99
-2026/07/26-15:37:48.936 268668 Delete type=2 #94
-2026/07/26-15:37:48.936 268668 Delete type=2 #97
+2026/08/05-22:15:00.847 3633b Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Local Storage/leveldb/MANIFEST-000001
+2026/08/05-22:15:00.849 3633b Recovering log #105
+2026/08/05-22:15:00.850 3633b Level-0 table #108: started
+2026/08/05-22:15:00.852 3633b Level-0 table #108: 23894 bytes OK
+2026/08/05-22:15:00.861 3633b Delete type=0 #105
+2026/08/05-22:17:02.353 36340 Level-0 table #111: started
+2026/08/05-22:17:02.357 36340 Level-0 table #111: 101372 bytes OK
+2026/08/05-22:17:02.363 36340 Delete type=0 #109
