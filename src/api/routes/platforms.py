@@ -144,7 +144,44 @@ def delete_platform(platform_id: int, db: Session = Depends(get_db)):
     if not row:
         return ApiResponse(code=404, message="平台不存在")
     
-    db.execute(text("DELETE FROM platforms WHERE id = :id"), {"id": platform_id})
+    # 检查是否有依赖数据
+    dependencies = []
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM business_lines WHERE platform_id = :pid"),
+        {"pid": platform_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条业务线")
+    
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM contacts WHERE platform_id = :pid"),
+        {"pid": platform_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条联系人记录")
+    
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM contents WHERE platform_id = :pid"),
+        {"pid": platform_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条内容数据")
+    
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM accounts WHERE platform_id = :pid"),
+        {"pid": platform_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 个账号")
+    
+    if dependencies:
+        detail = "、".join(dependencies)
+        return ApiResponse(
+            code=400,
+            message=f"该平台下有关联数据无法直接删除：{detail}，请先清理关联数据后再操作"
+        )
+    
+    db.execute(text("DELETE FROM platforms WHERE id = :pid"), {"pid": platform_id})
     db.commit()
     
-    return ApiResponse(result={"message": "Platform deleted successfully"})
+    return ApiResponse(result={"message": "平台删除成功"})

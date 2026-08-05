@@ -9,7 +9,7 @@ sys.path.append('src/TikTok/common')
 from search_keywords_v0 import search_keywords
 from scrape_reviews_v0 import scrape_comments, batch_scrape_comments
 sys.path.append('src/utils')
-from common_utils import get_text_response_ds, load_contacted_users
+from common_utils import get_adspower_ws, get_text_response_ds, load_contacted_users
 
 sys.path.append('src')
 from core.database import SessionLocal
@@ -41,6 +41,112 @@ KEYWORDS = [
 # https://www.tiktok.com/@birdiesathleticclub
 
 MESSAGES = []
+
+
+async def verify_fingerprint(page):
+    """验证浏览器指纹信息"""
+    print("\n🔍 正在验证浏览器指纹...")
+    try:
+        await page.goto("https://browserleaks.com/js", wait_until="domcontentloaded", timeout=15000)
+        await asyncio.sleep(2)
+
+        user_agent = await page.evaluate("navigator.userAgent")
+        platform = await page.evaluate("navigator.platform")
+        language = await page.evaluate("navigator.language")
+        hardware_concurrency = await page.evaluate("navigator.hardwareConcurrency")
+        device_memory = await page.evaluate("navigator.deviceMemory || 'N/A'")
+        screen_resolution = await page.evaluate("screen.width + 'x' + screen.height")
+        timezone = await page.evaluate("Intl.DateTimeFormat().resolvedOptions().timeZone")
+
+        print("─────────────────────────────────────")
+        print("📊 浏览器指纹信息:")
+        print(f"  User-Agent: {user_agent[:80]}...")
+        print(f"  Platform: {platform}")
+        print(f"  Language: {language}")
+        print(f"  CPU核心数: {hardware_concurrency}")
+        print(f"  内存: {device_memory} GB")
+        print(f"  屏幕分辨率: {screen_resolution}")
+        print(f"  时区: {timezone}")
+        print("─────────────────────────────────────")
+
+        webdriver_detected = await page.evaluate("window.navigator.webdriver || false")
+        if webdriver_detected:
+            print("⚠️ 警告: 检测到 webdriver 属性，可能被网站识别为自动化工具")
+        else:
+            print("✅ webdriver 属性已隐藏")
+
+        plugins_length = await page.evaluate("navigator.plugins.length")
+        print(f"  插件数量: {plugins_length}")
+
+        return {
+            "user_agent": user_agent,
+            "platform": platform,
+            "webdriver_detected": webdriver_detected
+        }
+    except Exception as e:
+        print(f"⚠️ 指纹验证失败: {e}")
+        return None
+
+
+async def open_tiktok_context(playwright, account_config: dict | None = None):
+    """Open a local profile or attach to an already-running AdsPower profile."""
+    browser_mode = os.environ.get("TIKTOK_BROWSER", "local").strip().lower()
+
+    adspower_user_id = None
+    account_name = None
+
+    if account_config and account_config.get("browser_id"):
+        adspower_user_id = account_config["browser_id"]
+        account_name = account_config["account_name"]
+        browser_mode = "adspower"
+        print(f"✅ 已加载账号配置: {account_name}")
+
+    if browser_mode == "adspower":
+        if not adspower_user_id:
+            adspower_user_id = os.environ.get("ADSPOWER_USER_ID", "").strip()
+        if not adspower_user_id:
+            raise RuntimeError("TIKTOK_BROWSER=adspower 时必须设置 ADSPOWER_USER_ID 或通过 account_id 指定")
+
+        api_key = os.environ.get("ADSPOWER_API_KEY", "").strip()
+        api_base_url = os.environ.get("ADSPOWER_API_BASE_URL", "http://127.0.0.1:50325")
+        kwargs = {"base_url": api_base_url}
+        if api_key:
+            kwargs["api_key"] = api_key
+        ws_endpoint = get_adspower_ws(adspower_user_id, **kwargs)
+        if not ws_endpoint:
+            raise RuntimeError("无法启动 AdsPower 档案，请确认 AdsPower 已启动、USER_ID 与 API Key 正确")
+
+        browser = await playwright.chromium.connect_over_cdp(ws_endpoint)
+        if not browser.contexts:
+            raise RuntimeError("AdsPower 已连接，但未返回可用浏览器上下文")
+        context = browser.contexts[0]
+        page = context.pages[0] if context.pages else await context.new_page()
+        print(f"✅ 已连接 AdsPower 档案: {adspower_user_id}")
+        print(f"使用账号: {account_name or '未知'}; 指纹浏览器USER_ID: {adspower_user_id}")
+        
+        verify_fingerprint_enabled = os.environ.get("VERIFY_FINGERPRINT", "0") == "1"
+        if verify_fingerprint_enabled:
+            await verify_fingerprint(page)
+            
+        return context, page, True
+
+    if browser_mode != "local":
+        raise RuntimeError("TIKTOK_BROWSER 仅支持 local 或 adspower")
+
+    context = await playwright.chromium.launch_persistent_context(
+        USER_DATA_DIR,
+        headless=os.environ.get("TIKTOK_HEADLESS", "0") == "1",
+        no_viewport=True,
+        args=["--disable-blink-features=AutomationControlled"],
+    )
+    page = context.pages[0] if context.pages else await context.new_page()
+    print("✅ 已启动本地 TikTok 浏览器档案")
+    
+    verify_fingerprint_enabled = os.environ.get("VERIFY_FINGERPRINT", "0") == "1"
+    if verify_fingerprint_enabled:
+        await verify_fingerprint(page)
+        
+    return context, page, False
 
 
 def load_prompt_by_business_line(business_line_code: str, template_code: str) -> str | None:
@@ -81,12 +187,49 @@ def load_active_ai_model() -> dict | None:
         db.close()
 
 
+def load_account_by_id(account_id: int) -> dict | None:
+    """从数据库获取账号配置"""
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            text("""
+                SELECT a.id, a.account_name, a.browser_id, p.name as platform_name
+                FROM accounts a
+                LEFT JOIN platforms p ON a.platform_id = p.id
+                WHERE a.id = :account_id AND a.status = 1
+            """),
+            {"account_id": account_id}
+        ).fetchone()
+        if not row:
+            return None
+        return {
+            "id": row.id,
+            "account_name": row.account_name,
+            "browser_id": row.browser_id,
+            "platform_name": row.platform_name
+        }
+    finally:
+        db.close()
+
+
 async def main():
     contacted_users = load_contacted_users(CONTACTED_USERS_FILE)
     all_potential_leads = []
 
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR, exist_ok=True)
+
+    account_config = None
+    account_id_env = os.environ.get("TIKTOK_ACCOUNT_ID", "").strip()
+    if account_id_env:
+        try:
+            account_config = load_account_by_id(int(account_id_env))
+            if not account_config:
+                print(f"⚠️ 未找到账号ID {account_id_env} 或账号已禁用，将使用默认配置")
+            elif not account_config.get("browser_id"):
+                print(f"⚠️ 账号 [{account_config['account_name']}] 未配置浏览器ID，将使用本地模式")
+        except ValueError:
+            print(f"⚠️ TIKTOK_ACCOUNT_ID 值 '{account_id_env}' 不是有效的数字，将使用默认配置")
 
     ai_model_config = load_active_ai_model()
     if not ai_model_config or not ai_model_config["api_key"]:
@@ -102,13 +245,7 @@ async def main():
 
     from playwright.async_api import async_playwright
     async with async_playwright() as p:
-        context = await p.chromium.launch_persistent_context(
-            USER_DATA_DIR,
-            headless=os.environ.get("TIKTOK_HEADLESS", "1") == "1",
-            no_viewport=True,
-            args=["--disable-blink-features=AutomationControlled"]
-        )
-        page = context.pages[0]
+        context, page, using_adspower = await open_tiktok_context(p, account_config)
 
         # --- 第一阶段：搜索视频 ---
         all_videos = []
@@ -224,7 +361,10 @@ async def main():
             csv.writer(file).writerows(potential_customer_data)
 
         print(f"\n💾 任务结束。潜在客户数据已保存至 {TARGET_USERS_FILE}")
-        await context.close()
+        if using_adspower:
+            print("AdsPower 档案保持运行，供后续任务复用。")
+        else:
+            await context.close()
 
 
 if __name__ == "__main__":

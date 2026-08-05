@@ -205,7 +205,9 @@ async def _dispatch(task: dict, ctx: TaskContext):
 
     if task_type == "scrape" and platform_code == "tiktok":
         from src.worker.pipelines.tiktok_scrape import run_scrape
-
+        await run_scrape(task, ctx)
+    elif task_type == "scrape" and platform_code == "douyin":
+        from src.worker.pipelines.douyin_scrape import run_scrape
         await run_scrape(task, ctx)
     else:
         raise NotImplementedError(

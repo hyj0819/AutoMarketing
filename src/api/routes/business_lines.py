@@ -184,6 +184,50 @@ def delete_business_line(line_id: int, db: Session = Depends(get_db)):
     if not row:
         raise HTTPException(status_code=404, detail="业务线不存在")
     
+    # 检查是否有依赖数据
+    dependencies = []
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM keywords WHERE business_line_id = :lid"),
+        {"lid": line_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条关键词")
+    
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM prompt_templates WHERE business_line_id = :lid"),
+        {"lid": line_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条提示词模板")
+    
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM contacts WHERE business_line_id = :lid"),
+        {"lid": line_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条联系人记录")
+    
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM contents WHERE business_line_id = :lid"),
+        {"lid": line_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条内容数据")
+    
+    cnt = db.execute(
+        text("SELECT COUNT(*) FROM task_executions WHERE business_line_id = :lid"),
+        {"lid": line_id}
+    ).scalar()
+    if cnt > 0:
+        dependencies.append(f"{cnt} 条任务记录")
+    
+    if dependencies:
+        detail = "、".join(dependencies)
+        return ApiResponse(
+            code=400,
+            message=f"该业务线下有关联数据无法直接删除：{detail}，请先清理关联数据后再操作"
+        )
+    
     db.execute(text("DELETE FROM business_lines WHERE id = :id"), {"id": line_id})
     db.commit()
     

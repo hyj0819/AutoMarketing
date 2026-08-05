@@ -281,6 +281,7 @@ def init_base_data(conn: sqlite3.Connection):
         ('reddit', 'Reddit'),
         ('tiktok', 'TikTok'),
         ('twitter', 'Twitter'),
+        ('douyin', '抖音'),
     ]
     
     cursor.executemany(

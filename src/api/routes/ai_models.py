@@ -196,6 +196,7 @@ def test_ai_model(model_id: int, data: TestAIModelRequest = None, db: Session = 
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         
         payload = {
+            "model": "deepseek-v4-flash",
             "messages": [{"role": "user", "content": test_prompt}],
             "max_tokens": 100,
             "temperature": 0.7
@@ -210,10 +211,7 @@ def test_ai_model(model_id: int, data: TestAIModelRequest = None, db: Session = 
                 response=result["choices"][0]["message"]["content"]
             ))
     except Exception as e:
-        return ApiResponse(result=TestAIModelResponse(
-            success=False,
-            response=f"Connection failed: {str(e)}"
-        ))
+        raise HTTPException(status_code=400, detail=f"Connection failed: {str(e)}")
 
 
 @router.delete("/{model_id}", response_model=ApiResponse[dict])

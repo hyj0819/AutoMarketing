@@ -32,7 +32,7 @@ sys.path.append(str(_PROJECT_ROOT / "src" / "utils"))
 
 from search_keywords_v0 import search_keywords  # noqa: E402
 from scrape_reviews_v0 import batch_scrape_comments  # noqa: E402
-from common_utils import get_text_response_ds  # noqa: E402
+from common_utils import get_text_response_ds, get_adspower_ws  # noqa: E402
 
 
 def _extract_content_id(video_url: str) -> str:
@@ -223,21 +223,77 @@ async def run_scrape(task: dict, ctx):
 
     deepseek_key = config.get_deepseek_api_key() if ai_filter_enabled else ""
 
+    account_id = task.get("account_id")
+    account_config = None
+    if account_id:
+        account_config = config.load_account_config(account_id)
+
     profile_dir = config.resolve_chrome_profile(task.get("bl_config"), task.get("platform_code"))
     headless = config.is_headless()
 
-    ctx.log("info", f"任务启动，打开浏览器（profile={profile_dir}, headless={headless}）")
+    use_adspower = False
+    adspower_user_id = None
+    account_name = None
+
+    if account_config and account_config.get("browser_id"):
+        use_adspower = True
+        adspower_user_id = account_config["browser_id"]
+        account_name = account_config["account_name"]
+        ctx.log("info", f"✅ 已加载账号配置: {account_name}")
+        ctx.log("info", f"任务启动，打开指纹浏览器（user_id={adspower_user_id}, headless={headless}）")
+    else:
+        ctx.log("info", f"任务启动，打开浏览器（profile={profile_dir}, headless={headless}）")
 
     from playwright.async_api import async_playwright
 
     async with async_playwright() as p:
-        context = await p.chromium.launch_persistent_context(
-            profile_dir,
-            headless=headless,
-            no_viewport=True,
-            args=["--disable-blink-features=AutomationControlled"],
-        )
-        page = context.pages[0] if context.pages else await context.new_page()
+        if use_adspower:
+            api_key = os.environ.get("ADSPOWER_API_KEY", "").strip()
+            api_base_url = os.environ.get("ADSPOWER_API_BASE_URL", "http://127.0.0.1:50325")
+            kwargs = {"base_url": api_base_url}
+            if api_key:
+                kwargs["api_key"] = api_key
+            
+            ctx.log("info", f"尝试连接 AdsPower（user_id={adspower_user_id}, base_url={api_base_url}）")
+            ws_endpoint = get_adspower_ws(adspower_user_id, **kwargs)
+            
+            if not ws_endpoint:
+                ctx.log("warning", "AdsPower 连接失败，自动降级为本地浏览器模式")
+                ctx.log("info", f"降级到本地模式: profile={profile_dir}, headless={headless}")
+                
+                context = await p.chromium.launch_persistent_context(
+                    profile_dir,
+                    headless=headless,
+                    no_viewport=True,
+                    args=["--disable-blink-features=AutomationControlled"],
+                )
+                page = context.pages[0] if context.pages else await context.new_page()
+                use_adspower = False
+            else:
+                browser = await p.chromium.connect_over_cdp(ws_endpoint)
+                if not browser.contexts:
+                    ctx.log("warning", "AdsPower 已连接，但未返回可用浏览器上下文，降级为本地模式")
+                    context = await p.chromium.launch_persistent_context(
+                        profile_dir,
+                        headless=headless,
+                        no_viewport=True,
+                        args=["--disable-blink-features=AutomationControlled"],
+                    )
+                    page = context.pages[0] if context.pages else await context.new_page()
+                    use_adspower = False
+                else:
+                    context = browser.contexts[0]
+                    page = context.pages[0] if context.pages else await context.new_page()
+                    ctx.log("info", f"✅ 已连接 AdsPower 档案: {adspower_user_id}")
+                    ctx.log("info", f"使用账号: {account_name}; 指纹浏览器USER_ID: {adspower_user_id}")
+        else:
+            context = await p.chromium.launch_persistent_context(
+                profile_dir,
+                headless=headless,
+                no_viewport=True,
+                args=["--disable-blink-features=AutomationControlled"],
+            )
+            page = context.pages[0] if context.pages else await context.new_page()
 
         try:
             # ---------- 第一阶段：搜索视频 ----------
@@ -382,7 +438,10 @@ async def run_scrape(task: dict, ctx):
             ctx.update_progress(progress=100, pending=0)
         finally:
             try:
-                await context.close()
+                if not use_adspower:
+                    await context.close()
+                else:
+                    ctx.log("info", "AdsPower 档案保持运行，供后续任务复用。")
             except Exception:
                 pass
 

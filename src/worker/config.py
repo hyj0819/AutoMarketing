@@ -6,6 +6,7 @@ Worker 配置解析
 - 无头模式开关（env WORKER_HEADLESS）
 - DeepSeek API Key（conf/api_key.json）
 - 轮询间隔（env WORKER_POLL_INTERVAL）
+- 账号配置（支持 AdsPower 指纹浏览器）
 """
 
 import json
@@ -18,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 # 平台默认 Chrome profile 目录（相对项目根）
 PLATFORM_DEFAULT_PROFILE = {
     "tiktok": "chrome_data/Chrome_Bot_Data_TK",
+    "douyin": "chrome_data/Chrome_Bot_Data_DY",
 }
 
 API_KEY_FILE = PROJECT_ROOT / "conf" / "api_key.json"
@@ -32,8 +34,8 @@ def get_poll_interval() -> int:
 
 
 def is_headless() -> bool:
-    """是否无头运行浏览器，默认 True（无头，不打开浏览器窗口）"""
-    return os.getenv("WORKER_HEADLESS", "true").strip().lower() in ("1", "true", "yes")
+    """是否无头运行浏览器，默认 False（保留 TikTok 的正常浏览器会话）"""
+    return os.getenv("WORKER_HEADLESS", "false").strip().lower() in ("1", "true", "yes")
 
 
 def resolve_chrome_profile(business_line_config: str | None, platform_code: str) -> str:
@@ -78,3 +80,33 @@ def get_deepseek_api_key() -> str:
     if not key:
         raise ValueError(f"{API_KEY_FILE} 中缺少 deepseek.api_key")
     return key
+
+
+def load_account_config(account_id: int) -> dict | None:
+    """从数据库获取账号配置（支持 AdsPower 指纹浏览器）"""
+    try:
+        from src.core.database import SessionLocal
+        from sqlalchemy import text
+        db = SessionLocal()
+        try:
+            row = db.execute(
+                text("""
+                    SELECT a.id, a.account_name, a.browser_id, p.name as platform_name
+                    FROM accounts a
+                    LEFT JOIN platforms p ON a.platform_id = p.id
+                    WHERE a.id = :account_id AND a.status = 1
+                """),
+                {"account_id": account_id}
+            ).fetchone()
+            if not row:
+                return None
+            return {
+                "id": row.id,
+                "account_name": row.account_name,
+                "browser_id": row.browser_id,
+                "platform_name": row.platform_name
+            }
+        finally:
+            db.close()
+    except Exception:
+        return None

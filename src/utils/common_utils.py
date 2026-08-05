@@ -332,12 +332,33 @@ def get_adspower_ws(user_id, api_key="4188a4ee49461bef870df28cefc9ecef008bdc717c
     start_url = f"{base_url}/api/v1/browser/start?user_id={user_id}"
     
     try:
-        resp = requests.get(start_url, headers=headers).json()
-        if resp["code"] == 0:
-            return resp["data"]["ws"]["puppeteer"]
-        else:
-            print(f"❌ AdsPower 启动失败: {resp['msg']}")
+        resp = requests.get(start_url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            print(f"❌ AdsPower API 请求失败，HTTP状态码: {resp.status_code}")
             return None
+            
+        try:
+            data = resp.json()
+        except ValueError:
+            print(f"❌ AdsPower API 返回非JSON响应: {resp.text[:200]}")
+            return None
+            
+        if data.get("code") == 0:
+            ws_info = data.get("data", {}).get("ws", {})
+            puppeteer_url = ws_info.get("puppeteer")
+            if puppeteer_url:
+                return puppeteer_url
+            print(f"❌ AdsPower API 返回数据中缺少 puppeteer 地址: {data}")
+            return None
+        else:
+            print(f"❌ AdsPower 启动失败: code={data.get('code')}, msg={data.get('msg', '未知')}")
+            return None
+    except requests.exceptions.ConnectionError:
+        print(f"❌ 无法连接到 AdsPower API，请确认 AdsPower 已启动。URL: {base_url}")
+        return None
+    except requests.exceptions.Timeout:
+        print(f"❌ AdsPower API 请求超时")
+        return None
     except Exception as e:
         print(f"❌ 请求 AdsPower API 出错: {e}")
         return None

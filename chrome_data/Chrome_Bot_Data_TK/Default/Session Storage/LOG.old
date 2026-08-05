@@ -1,3 +1,6 @@
-2026/07/21-22:23:39.990 55ae2 Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage/MANIFEST-000001
-2026/07/21-22:23:39.990 55ae2 Recovering log #3
-2026/07/21-22:23:39.991 55ae2 Reusing old log /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage/000003.log 
+2026/07/26-15:19:33.079 1ed379 Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage/MANIFEST-000001
+2026/07/26-15:19:33.083 1ed379 Recovering log #4
+2026/07/26-15:19:33.084 1ed379 Reusing old log /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/Session Storage/000004.log 
+2026/07/26-15:20:17.589 1ed37f Level-0 table #8: started
+2026/07/26-15:20:17.597 1ed37f Level-0 table #8: 22729 bytes OK
+2026/07/26-15:20:17.601 1ed37f Delete type=0 #4
