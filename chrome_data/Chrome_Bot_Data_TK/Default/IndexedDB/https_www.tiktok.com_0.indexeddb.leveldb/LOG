@@ -1,3 +1,12 @@
 2026/08/05-22:15:01.262 362fb Reusing MANIFEST /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/IndexedDB/https_www.tiktok.com_0.indexeddb.leveldb/MANIFEST-000001
 2026/08/05-22:15:01.262 362fb Recovering log #36
 2026/08/05-22:15:01.280 362fb Reusing old log /Users/hyj/Documents/mywork/AutoMarketing/chrome_data/Chrome_Bot_Data_TK/Default/IndexedDB/https_www.tiktok.com_0.indexeddb.leveldb/000036.log 
+2026/08/05-22:17:24.974 362f9 Level-0 table #41: started
+2026/08/05-22:17:25.002 362f9 Level-0 table #41: 929968 bytes OK
+2026/08/05-22:17:25.007 362f9 Delete type=0 #36
+2026/08/05-22:17:43.174 362f9 Compacting 1@1 + 1@2 files
+2026/08/05-22:17:43.188 362f9 Generated table #42@1: 734 keys, 20353 bytes
+2026/08/05-22:17:43.188 362f9 Compacted 1@1 + 1@2 files => 20353 bytes
+2026/08/05-22:17:43.192 362f9 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/08/05-22:17:43.192 362f9 Delete type=2 #38
+2026/08/05-22:17:43.192 362f9 Delete type=2 #41
