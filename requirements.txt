@@ -1,6 +1,7 @@
 # FastAPI 框架
 fastapi==0.115.0
 uvicorn==0.30.6
+python-multipart==0.0.32
 
 # 数据库
 sqlalchemy==2.0.45
