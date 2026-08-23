@@ -2,6 +2,7 @@
 业务线配置路由
 """
 
+import json
 import time
 import random
 
@@ -70,6 +71,34 @@ def list_business_lines(
         ))
     
     return ApiResponse(result=lines)
+
+
+@router.get("/{line_id}", response_model=ApiResponse[BusinessLineResponse])
+def get_business_line(line_id: int, db: Session = Depends(get_db)):
+    """获取单个业务线详情"""
+    query = text("""
+        SELECT bl.*, p.name as platform_name 
+        FROM business_lines bl
+        LEFT JOIN platforms p ON bl.platform_id = p.id
+        WHERE bl.id = :id
+    """)
+    cursor = db.execute(query, {"id": line_id})
+    row = cursor.fetchone()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="项目不存在")
+    
+    return ApiResponse(result=BusinessLineResponse(
+        id=row.id,
+        platform_id=row.platform_id,
+        platform_name=row.platform_name,
+        code=row.code,
+        name=row.name,
+        status=row.status,
+        config=row.config,
+        created_at=str(row.created_at),
+        updated_at=str(row.updated_at)
+    ))
 
 
 @router.post("/", response_model=ApiResponse[BusinessLineResponse])
@@ -232,3 +261,60 @@ def delete_business_line(line_id: int, db: Session = Depends(get_db)):
     db.commit()
     
     return ApiResponse(result={"message": "业务线删除成功"})
+
+
+# ==================== 商家信息 ====================
+
+
+@router.get("/{line_id}/business-profile", response_model=ApiResponse[dict])
+def get_business_profile(line_id: int, db: Session = Depends(get_db)):
+    """读取项目的商家信息（从 config JSON 的 business_profile 块）"""
+    row = db.execute(
+        text("SELECT config FROM business_lines WHERE id = :id"),
+        {"id": line_id},
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="项目不存在")
+
+    cfg = {}
+    try:
+        cfg = json.loads(row.config or "{}")
+    except Exception:
+        pass
+
+    profile = cfg.get("business_profile", {})
+    return ApiResponse(result=profile)
+
+
+@router.put("/{line_id}/business-profile", response_model=ApiResponse[dict])
+def update_business_profile(line_id: int, data: dict, db: Session = Depends(get_db)):
+    """更新项目的商家信息（写入 config JSON 的 business_profile 块）"""
+    row = db.execute(
+        text("SELECT config FROM business_lines WHERE id = :id"),
+        {"id": line_id},
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="项目不存在")
+
+    cfg = {}
+    try:
+        cfg = json.loads(row.config or "{}")
+    except Exception:
+        pass
+
+    # 只保留已知的商家字段
+    allowed_keys = {"phone", "wechat", "shop_name", "shop_address", "site_url"}
+    profile = cfg.get("business_profile", {})
+    for key in allowed_keys:
+        if key in data:
+            profile[key] = str(data[key]).strip() if data[key] else ""
+
+    cfg["business_profile"] = profile
+
+    db.execute(
+        text("UPDATE business_lines SET config = :config, updated_at = CURRENT_TIMESTAMP WHERE id = :id"),
+        {"config": json.dumps(cfg, ensure_ascii=False), "id": line_id},
+    )
+    db.commit()
+
+    return ApiResponse(result=profile)

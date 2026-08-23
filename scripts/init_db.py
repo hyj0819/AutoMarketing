@@ -18,6 +18,9 @@ def create_tables(conn: sqlite3.Connection):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             code VARCHAR(50) UNIQUE NOT NULL,
             name VARCHAR(100) NOT NULL,
+            description TEXT,
+            icon TEXT,
+            reach_strategy VARCHAR(30) DEFAULT 'dm',
             status INTEGER DEFAULT 1,
             config TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -169,11 +172,15 @@ def create_tables(conn: sqlite3.Connection):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS system_configs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            config_key VARCHAR(100) UNIQUE NOT NULL,
+            config_group VARCHAR(50) NOT NULL,
+            config_key VARCHAR(100) NOT NULL,
             config_value TEXT,
-            config_type VARCHAR(20) DEFAULT 'string',
-            description VARCHAR(500),
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            value_type VARCHAR(20) DEFAULT 'string',
+            label VARCHAR(200),
+            description TEXT,
+            sort_order INTEGER DEFAULT 0,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(config_group, config_key)
         )
     """)
     
@@ -278,14 +285,13 @@ def init_base_data(conn: sqlite3.Connection):
     cursor = conn.cursor()
     
     platforms = [
-        ('reddit', 'Reddit'),
-        ('tiktok', 'TikTok'),
-        ('twitter', 'Twitter'),
-        ('douyin', '抖音'),
+        ('tiktok', 'TikTok', '全球领先的短视频创意社区，助力品牌出海与海外用户触达', '/uploads/platforms/tiktok.png', 'dm'),
+        ('xiaohongshu', '小红书', '生活方式分享平台，汇聚真实用户口碑与消费决策内容', '/uploads/platforms/xiaohongshu.png', 'dm'),
+        ('douyin', '抖音', '国内领先的短视频平台，覆盖海量用户与丰富的内容生态', '/uploads/platforms/douyin.png', 'comment_reply'),
     ]
     
     cursor.executemany(
-        "INSERT OR IGNORE INTO platforms (code, name) VALUES (?, ?)",
+        "INSERT OR IGNORE INTO platforms (code, name, description, icon, reach_strategy) VALUES (?, ?, ?, ?, ?)",
         platforms
     )
     
@@ -299,6 +305,26 @@ def init_base_data(conn: sqlite3.Connection):
         VALUES ('openai', 'gpt-4o', '', 'https://api.openai.com/v1', 8192, 70, 90, 0, 1, 'OpenAI GPT-4o - 需填写 API Key')
     """)
     
+    # 初始化系统参数（风控配置）
+    system_configs = [
+        ('risk_control', 'message_send_interval_min', '5', 'number', '私信发送最小间隔(分钟)', '两条私信之间的最短等待时间', 1),
+        ('risk_control', 'message_send_interval_max', '15', 'number', '私信发送最大间隔(分钟)', '两条私信之间的最长等待时间', 2),
+        ('risk_control', 'message_daily_limit', '100', 'number', '每日发送上限(条/账号)', '单个账号每天最多发送的私信数', 3),
+        ('risk_control', 'message_batch_limit', '50', 'number', '单次任务发送上限(条)', '单个任务最多发送的私信数', 4),
+        ('risk_control', 'reply_interval_min', '3', 'number', '评论回复最小间隔(秒)', '两条评论回复之间的最短等待', 5),
+        ('risk_control', 'reply_interval_max', '10', 'number', '评论回复最大间隔(秒)', '两条评论回复之间的最长等待', 6),
+        ('ai', 'deepseek_model', 'deepseek-chat', 'string', 'DeepSeek 模型名称', 'DeepSeek API 使用的模型名称', 1),
+        ('ai', 'message_max_length', '200', 'number', '私信最大字数', 'AI 生成私信的最大字符数', 2),
+        ('worker', 'headless', 'false', 'boolean', '无头模式', '浏览器是否在后台运行，开启后不弹出 Chrome 窗口', 1),
+        ('worker', 'poll_interval', '3', 'number', '轮询间隔(秒)', 'Worker 检查新任务的间隔时间', 2),
+        ('worker', 'comment_scroll_pause', '2', 'number', '评论滚动间隔(秒)', '爬取评论时滚动暂停的等待时间', 3),
+    ]
+    for group, key, value, vtype, label, desc, sort in system_configs:
+        cursor.execute(
+            "INSERT OR IGNORE INTO system_configs (config_group, config_key, config_value, value_type, label, description, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (group, key, value, vtype, label, desc, sort)
+        )
+
     # 初始化内置角色
     roles = [
         ('admin', '超级管理员', '拥有所有权限'),
@@ -317,9 +343,10 @@ def init_base_data(conn: sqlite3.Connection):
     if admin_role:
         all_menu_keys = [
             'dashboard', 'tasks', 'data',
-            'config', 'config_platforms', 'config_business_lines', 'config_keywords', 'config_prompts', 'config_ai_models',
+            'config', 'config_platforms', 'config_ai_models',
+            'project', 'project_business_lines', 'project_keywords', 'project_prompt_templates',
             'stats',
-            'system', 'system_users', 'system_roles', 'system_operation_logs',
+            'system', 'system_users', 'system_roles', 'system_operation_logs', 'system_configs',
         ]
         for mk in all_menu_keys:
             cursor.execute(
@@ -333,7 +360,8 @@ def init_base_data(conn: sqlite3.Connection):
     if op_role:
         op_menu_keys = [
             'dashboard', 'tasks', 'data',
-            'config', 'config_platforms', 'config_business_lines', 'config_keywords', 'config_prompts',
+            'config', 'config_platforms',
+            'project', 'project_business_lines', 'project_keywords', 'project_prompt_templates',
             'stats',
         ]
         for mk in op_menu_keys:

@@ -4,10 +4,16 @@ FastAPI 应用入口
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# 确保上传目录存在
+uploads_dir = Path(__file__).parent.parent.parent / "uploads"
+uploads_dir.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
     title="AutoMarketing API",
@@ -28,7 +34,7 @@ app.add_middleware(
 
 from src.api.routes import ai_models, keywords, platforms, business_lines
 from src.api.routes import prompt_templates, contacts, contents, task_executions, stats
-from src.api.routes import accounts, operation_logs
+from src.api.routes import accounts, operation_logs, system_configs
 from src.api.routes import auth, users, roles
 
 app.include_router(ai_models.router, prefix="/api/config/ai-models", tags=["AI模型配置"])
@@ -45,6 +51,7 @@ app.include_router(operation_logs.router, prefix="/api/system/operation-logs", t
 app.include_router(auth.router, prefix="/api/auth", tags=["认证"])
 app.include_router(users.router, prefix="/api/system/users", tags=["用户管理"])
 app.include_router(roles.router, prefix="/api/system/roles", tags=["角色管理"])
+app.include_router(system_configs.router, prefix="/api/system/configs", tags=["系统参数"])
 
 
 @app.get("/")
@@ -57,3 +64,7 @@ async def root():
 async def health_check():
     """健康检查"""
     return {"status": "ok"}
+
+
+# 静态文件服务：上传的图标等
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")

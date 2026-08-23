@@ -26,7 +26,13 @@ API_KEY_FILE = PROJECT_ROOT / "conf" / "api_key.json"
 
 
 def get_poll_interval() -> int:
-    """轮询间隔（秒），默认 3s"""
+    """轮询间隔（秒），优先从 system_configs 读取，兑底 3s"""
+    db_val = _get_worker_config("poll_interval")
+    if db_val is not None:
+        try:
+            return int(db_val)
+        except ValueError:
+            pass
     try:
         return int(os.getenv("WORKER_POLL_INTERVAL", "3"))
     except ValueError:
@@ -34,7 +40,12 @@ def get_poll_interval() -> int:
 
 
 def is_headless() -> bool:
-    """是否无头运行浏览器，默认 False（保留 TikTok 的正常浏览器会话）"""
+    """是否无头运行浏览器
+    优先从 system_configs 表读取（worker.headless），兑底读环境变量 WORKER_HEADLESS
+    """
+    db_val = _get_worker_config("headless")
+    if db_val is not None:
+        return db_val.strip().lower() in ("1", "true", "yes")
     return os.getenv("WORKER_HEADLESS", "false").strip().lower() in ("1", "true", "yes")
 
 
@@ -110,3 +121,45 @@ def load_account_config(account_id: int) -> dict | None:
             db.close()
     except Exception:
         return None
+
+
+def _get_worker_config(key: str, default=None):
+    """从 system_configs 读取 worker 分组参数"""
+    try:
+        from src.core.database import SessionLocal
+        from sqlalchemy import text
+        db = SessionLocal()
+        try:
+            row = db.execute(
+                text(
+                    "SELECT config_value FROM system_configs "
+                    "WHERE config_group='worker' AND config_key=:key"
+                ),
+                {"key": key},
+            ).fetchone()
+            return row[0] if row else default
+        finally:
+            db.close()
+    except Exception:
+        return default
+
+
+def get_risk_config(key: str, default=None):
+    """从 system_configs 读取风控参数，带默认值兑底"""
+    try:
+        from src.core.database import SessionLocal
+        from sqlalchemy import text
+        db = SessionLocal()
+        try:
+            row = db.execute(
+                text(
+                    "SELECT config_value FROM system_configs "
+                    "WHERE config_group='risk_control' AND config_key=:key"
+                ),
+                {"key": key},
+            ).fetchone()
+            return row[0] if row else default
+        finally:
+            db.close()
+    except Exception:
+        return default

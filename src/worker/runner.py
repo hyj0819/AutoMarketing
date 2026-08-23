@@ -11,6 +11,7 @@ Worker 主循环 / 状态机 / 数据库工具方法
 """
 
 import asyncio
+import json
 import signal
 import time
 import traceback
@@ -209,6 +210,36 @@ async def _dispatch(task: dict, ctx: TaskContext):
     elif task_type == "scrape" and platform_code == "douyin":
         from src.worker.pipelines.douyin_scrape import run_scrape
         await run_scrape(task, ctx)
+    elif task_type == "message" and platform_code == "tiktok":
+        from src.worker.pipelines.tiktok_message import run_message
+        await run_message(task, ctx)
+    elif task_type == "message" and platform_code == "douyin":
+        from src.worker.pipelines.douyin_message import run_message
+        await run_message(task, ctx)
+    elif task_type == "reach":
+        # 触达任务：根据 task_config 中的 reach_strategy 路由
+        cfg = {}
+        try:
+            cfg = json.loads(task.get("task_config") or "{}")
+        except Exception:
+            pass
+        strategy = cfg.get("reach_strategy", "dm")
+        if strategy == "dm":
+            if platform_code == "tiktok":
+                from src.worker.pipelines.tiktok_message import run_message
+                await run_message(task, ctx)
+            elif platform_code == "douyin":
+                from src.worker.pipelines.douyin_message import run_message
+                await run_message(task, ctx)
+            else:
+                raise NotImplementedError(f"reach/dm 暂不支持平台: {platform_code}")
+        elif strategy == "comment_reply":
+            # TODO: 评论回复管线尚未实现，待后续开发
+            raise NotImplementedError(
+                f"reach/comment_reply 管线尚未实现（平台: {platform_code}）"
+            )
+        else:
+            raise NotImplementedError(f"未知的触达策略: {strategy}")
     else:
         raise NotImplementedError(
             f"暂不支持的任务组合: task_type={task_type}, platform={platform_code}"

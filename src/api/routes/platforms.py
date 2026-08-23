@@ -4,8 +4,11 @@
 
 import time
 import random
+import os
+import uuid
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Optional
@@ -13,6 +16,11 @@ from typing import List, Optional
 from src.core.database import get_db
 from src.api.schemas.common import ApiResponse
 from src.api.schemas.platform import PlatformCreate, PlatformUpdate, PlatformResponse
+
+# 上传目录
+UPLOAD_DIR = Path(__file__).parent.parent.parent.parent / "uploads" / "platforms"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
 
 router = APIRouter()
 
@@ -42,6 +50,9 @@ def list_platforms(status: Optional[int] = None, db: Session = Depends(get_db)):
             id=row.id,
             code=row.code,
             name=row.name,
+            description=row.description,
+            icon=row.icon,
+            reach_strategy=getattr(row, 'reach_strategy', 'dm') or 'dm',
             status=row.status,
             config=row.config,
             created_at=str(row.created_at),
@@ -57,12 +68,15 @@ def create_platform(data: PlatformCreate, db: Session = Depends(get_db)):
     platform_code = data.code or _generate_platform_code()
     
     try:
-        query = text("""INSERT INTO platforms (code, name, status, config)
-           VALUES (:code, :name, :status, :config)""")
+        query = text("""INSERT INTO platforms (code, name, description, icon, reach_strategy, status, config)
+           VALUES (:code, :name, :description, :icon, :reach_strategy, :status, :config)""")
         
         cursor = db.execute(query, {
             "code": platform_code,
             "name": data.name,
+            "description": data.description,
+            "icon": data.icon,
+            "reach_strategy": data.reach_strategy,
             "status": data.status,
             "config": data.config
         })
@@ -78,6 +92,9 @@ def create_platform(data: PlatformCreate, db: Session = Depends(get_db)):
             id=row.id,
             code=row.code,
             name=row.name,
+            description=row.description,
+            icon=row.icon,
+            reach_strategy=getattr(row, 'reach_strategy', 'dm') or 'dm',
             status=row.status,
             config=row.config,
             created_at=str(row.created_at),
@@ -106,6 +123,15 @@ def update_platform(platform_id: int, data: PlatformUpdate, db: Session = Depend
     if data.name is not None:
         updates.append("name = :name")
         params["name"] = data.name
+    if data.description is not None:
+        updates.append("description = :description")
+        params["description"] = data.description
+    if data.icon is not None:
+        updates.append("icon = :icon")
+        params["icon"] = data.icon
+    if data.reach_strategy is not None:
+        updates.append("reach_strategy = :reach_strategy")
+        params["reach_strategy"] = data.reach_strategy
     if data.status is not None:
         updates.append("status = :status")
         params["status"] = data.status
@@ -127,11 +153,35 @@ def update_platform(platform_id: int, data: PlatformUpdate, db: Session = Depend
         id=row.id,
         code=row.code,
         name=row.name,
+        description=row.description,
+        icon=row.icon,
+        reach_strategy=getattr(row, 'reach_strategy', 'dm') or 'dm',
         status=row.status,
         config=row.config,
         created_at=str(row.created_at),
         updated_at=str(row.updated_at)
     ))
+
+
+@router.post("/upload-icon", response_model=ApiResponse[dict])
+async def upload_icon(file: UploadFile = File(...)):
+    """上传平台图标"""
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return ApiResponse(code=400, message=f"不支持的图片格式，仅支持: {', '.join(ALLOWED_EXTENSIONS)}")
+    
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = UPLOAD_DIR / filename
+    
+    content = await file.read()
+    if len(content) > 2 * 1024 * 1024:  # 2MB
+        return ApiResponse(code=400, message="图片大小不能超过 2MB")
+    
+    with open(filepath, "wb") as f:
+        f.write(content)
+    
+    icon_url = f"/uploads/platforms/{filename}"
+    return ApiResponse(result={"url": icon_url})
 
 
 @router.delete("/{platform_id}", response_model=ApiResponse[dict])

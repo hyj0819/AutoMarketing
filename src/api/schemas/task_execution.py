@@ -38,11 +38,7 @@ class TaskMessageCreate(BaseModel):
     business_line_id: int
     target_contact_ids: List[int] = Field(..., min_items=1, description="目标用户ID列表")
     message_mode: str = Field(default="personalized", description="消息模式: personalized/fixed")
-    prompt_template_id: Optional[int] = None
     fixed_message: Optional[str] = None
-    max_send_count: int = Field(default=50, ge=1, le=500)
-    send_interval_min: int = Field(default=8, ge=1, description="发送最小间隔(分钟)")
-    send_interval_max: int = Field(default=20, ge=1, description="发送最大间隔(分钟)")
     account_id: Optional[int] = None
 
 
@@ -54,6 +50,21 @@ class TaskReplyCreate(BaseModel):
     prompt_template_id: Optional[int] = None
     max_reply_count: int = Field(default=30, ge=1, le=200)
     account_id: Optional[int] = None
+
+
+class TaskReachCreate(BaseModel):
+    """创建触达任务（合并私信+评论回复，由平台 reach_strategy 决定具体方式）"""
+    task_name: Optional[str] = None
+    business_line_id: int
+    target_contact_ids: List[int] = Field(..., min_items=1, description="目标用户ID列表")
+    message_mode: str = Field(default="personalized", description="消息模式: personalized/fixed")
+    fixed_message: Optional[str] = None
+    account_id: Optional[int] = None
+    include_business_info: bool = Field(default=False, description="是否附带商家信息")
+    business_info_fields: Optional[List[str]] = Field(
+        default=None,
+        description="附带商家字段列表: phone/wechat/shop_name/shop_address/site_url",
+    )
 
 
 # ==================== 任务响应 Schema ====================

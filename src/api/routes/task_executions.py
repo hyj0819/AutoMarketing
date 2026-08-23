@@ -14,6 +14,7 @@ from src.api.schemas.task_execution import (
     TaskScrapeCreate,
     TaskMessageCreate,
     TaskReplyCreate,
+    TaskReachCreate,
     TaskExecutionResponse,
     TaskListResponse,
     TaskLogResponse,
@@ -203,16 +204,12 @@ def create_message_task(data: TaskMessageCreate, db: Session = Depends(get_db)):
         {
             "target_contact_ids": data.target_contact_ids,
             "message_mode": data.message_mode,
-            "prompt_template_id": data.prompt_template_id,
             "fixed_message": data.fixed_message,
-            "max_send_count": data.max_send_count,
-            "send_interval_min": data.send_interval_min,
-            "send_interval_max": data.send_interval_max,
         },
         ensure_ascii=False,
     )
 
-    total_items = min(len(data.target_contact_ids), data.max_send_count)
+    total_items = len(data.target_contact_ids)
     task_name = data.task_name or f"私信任务-{bl.name}"
 
     insert_sql = text("""
@@ -281,6 +278,75 @@ def create_reply_task(data: TaskReplyCreate, db: Session = Depends(get_db)):
     )
     # 必须在 commit 之前、同一连接的事务内读取 last_insert_rowid()，
     # 否则 commit 后会话可能切换到连接池中的其他连接，导致返回 0（连接级函数）
+    task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
+    db.commit()
+    return get_task(task_id, db)
+
+
+@router.post("/reach", response_model=ApiResponse[TaskExecutionResponse])
+def create_reach_task(data: TaskReachCreate, db: Session = Depends(get_db)):
+    """创建触达任务（根据平台 reach_strategy 自动决定触达方式）"""
+    bl = db.execute(
+        text("""
+            SELECT bl.*, p.code as platform_code, p.reach_strategy
+            FROM business_lines bl
+            LEFT JOIN platforms p ON bl.platform_id = p.id
+            WHERE bl.id = :id
+        """),
+        {"id": data.business_line_id},
+    ).fetchone()
+    if not bl:
+        raise HTTPException(status_code=404, detail="业务线不存在")
+
+    reach_strategy = getattr(bl, 'reach_strategy', None) or 'dm'
+
+    # 构建 task_config
+    cfg_dict = {
+        "target_contact_ids": data.target_contact_ids,
+        "message_mode": data.message_mode,
+        "fixed_message": data.fixed_message,
+        "reach_strategy": reach_strategy,
+        "include_business_info": data.include_business_info,
+        "business_info_fields": data.business_info_fields or [],
+    }
+
+    # 如果选择附带商家信息，从项目 config 中提取对应字段
+    if data.include_business_info and data.business_info_fields:
+        bl_config = {}
+        try:
+            bl_config = json.loads(bl.config or "{}")
+        except Exception:
+            pass
+        full_profile = bl_config.get("business_profile", {})
+        allowed = {"phone", "wechat", "shop_name", "shop_address", "site_url"}
+        selected_fields = [f for f in data.business_info_fields if f in allowed]
+        cfg_dict["business_profile"] = {
+            f: full_profile.get(f, "") for f in selected_fields if full_profile.get(f)
+        }
+
+    task_config = json.dumps(cfg_dict, ensure_ascii=False)
+
+    total_items = len(data.target_contact_ids)
+    task_name = data.task_name or f"触达任务-{bl.name}"
+
+    insert_sql = text("""
+        INSERT INTO task_executions
+            (task_name, task_type, business_line_id, status, task_config,
+             total_items, pending_items, account_id)
+        VALUES
+            (:task_name, 'reach', :business_line_id, 'pending', :task_config,
+             :total_items, :total_items, :account_id)
+    """)
+    db.execute(
+        insert_sql,
+        {
+            "task_name": task_name,
+            "business_line_id": data.business_line_id,
+            "task_config": task_config,
+            "total_items": total_items,
+            "account_id": data.account_id,
+        },
+    )
     task_id = db.execute(text("SELECT last_insert_rowid() as id")).fetchone()[0]
     db.commit()
     return get_task(task_id, db)
