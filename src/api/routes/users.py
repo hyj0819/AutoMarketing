@@ -327,8 +327,66 @@ def assign_roles(
         operator=current_user["username"],
         target_type="user",
         target_id=user_id,
-        operation_detail=f"为用户ID: {user_id} 分配角色: {data.role_ids}",
+        operation_detail=f"为用户 ID: {user_id} 分配角色：{data.role_ids}",
         ip_address=client_ip,
     )
 
     return ApiResponse(result={"message": "角色分配成功"})
+
+
+# ==================== 个人设置 API ====================
+
+
+class ChangePasswordRequest(BaseModel):
+    """修改密码请求"""
+    old_password: str = Field(..., description="当前密码")
+    new_password: str = Field(..., min_length=6, max_length=50, description="新密码（至少 6 位）")
+
+
+@router.post("/change-password", response_model=ApiResponse[dict])
+def change_own_password(
+    data: ChangePasswordRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """修改自己的密码"""
+    # 验证旧密码
+    cursor = db.execute(
+        text("SELECT password_hash FROM users WHERE id = :id"), 
+        {"id": current_user["id"]}
+    )
+    user = cursor.fetchone()
+    
+    if not user:
+        return ApiResponse(code=404, message="用户不存在")
+    
+    # 检查旧密码是否正确
+    if not bcrypt.checkpw(data.old_password.encode(), user.password_hash.encode()):
+        return ApiResponse(code=400, message="当前密码错误")
+    
+    # 检查新旧密码是否相同
+    if data.old_password == data.new_password:
+        return ApiResponse(code=400, message="新密码不能与旧密码相同")
+    
+    # 更新密码
+    pwd_hash = bcrypt.hashpw(data.new_password.encode(), bcrypt.gensalt()).decode()
+    db.execute(
+        text("UPDATE users SET password_hash = :p, updated_at = CURRENT_TIMESTAMP WHERE id = :id"),
+        {"p": pwd_hash, "id": current_user["id"]}
+    )
+    db.commit()
+
+    # 记录操作日志
+    client_ip = request.client.host if request.client else None
+    log_operation(
+        db=db,
+        operation_type="修改密码",
+        operator=current_user["username"],
+        target_type="user",
+        target_id=current_user["id"],
+        operation_detail="修改了自己的登录密码",
+        ip_address=client_ip,
+    )
+
+    return ApiResponse(result={"message": "密码修改成功，请使用新密码重新登录"})
