@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Optional
+from pydantic import BaseModel, Field
 import bcrypt
 
 from src.core.database import get_db
