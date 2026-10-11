@@ -1,0 +1,19 @@
+.DS_Store
+tmp/
+log/
+.*
+!.gitignore
+scraper-demo/截客系统介绍.mov
+scraper/
+
+# Python 字节码缓存
+__pycache__/
+*.py[cod]
+
+# 本地 SQLite 数据库及其 WAL 副产物
+*.db
+*.db-shm
+*.db-wal
+
+# Playwright/Chrome 自动化运行缓存（文件数上万，绝不能入库）
+chrome_data/
