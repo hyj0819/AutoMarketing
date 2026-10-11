@@ -29,8 +29,69 @@ def create_tables(conn: sqlite3.Connection):
     """)
     
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tenants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code VARCHAR(50) UNIQUE NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            plan_code VARCHAR(30) DEFAULT 'growth',
+            status INTEGER DEFAULT 1,
+            quota_reach INTEGER DEFAULT 2000,
+            quota_ai_calls INTEGER DEFAULT 6000,
+            quota_seats INTEGER DEFAULT 5,
+            period_start VARCHAR(10),
+            period_end VARCHAR(10),
+            contact_name VARCHAR(50),
+            contact_email VARCHAR(100),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS portal_accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            real_name VARCHAR(50),
+            status INTEGER DEFAULT 1,
+            email_verified INTEGER DEFAULT 0,
+            last_login_at DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tenant_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER NOT NULL,
+            account_id INTEGER NOT NULL,
+            role VARCHAR(20) DEFAULT 'operator',
+            status INTEGER DEFAULT 1,
+            visible_scope TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(tenant_id, account_id)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tenant_invitations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER NOT NULL,
+            email VARCHAR(100) NOT NULL,
+            role VARCHAR(20) DEFAULT 'operator',
+            token VARCHAR(64) UNIQUE NOT NULL,
+            status VARCHAR(20) DEFAULT 'pending',
+            expires_at DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS business_lines (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER DEFAULT 1,
             platform_id INTEGER NOT NULL,
             code VARCHAR(50) NOT NULL,
             name VARCHAR(100) NOT NULL,
@@ -46,6 +107,7 @@ def create_tables(conn: sqlite3.Connection):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS keywords (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER DEFAULT 1,
             business_line_id INTEGER NOT NULL,
             keyword VARCHAR(200) NOT NULL,
             status INTEGER DEFAULT 1,
@@ -79,6 +141,7 @@ def create_tables(conn: sqlite3.Connection):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS prompt_templates (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER DEFAULT 1,
             business_line_id INTEGER NOT NULL,
             template_code VARCHAR(50) NOT NULL,
             name VARCHAR(100) NOT NULL,
@@ -96,6 +159,7 @@ def create_tables(conn: sqlite3.Connection):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS contacts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER DEFAULT 1,
             platform_id INTEGER NOT NULL,
             business_line_id INTEGER NOT NULL,
             platform_user_id VARCHAR(200) NOT NULL,
@@ -118,6 +182,7 @@ def create_tables(conn: sqlite3.Connection):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS contents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER DEFAULT 1,
             platform_id INTEGER NOT NULL,
             business_line_id INTEGER NOT NULL,
             content_type VARCHAR(20) NOT NULL,
@@ -140,6 +205,7 @@ def create_tables(conn: sqlite3.Connection):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS task_executions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER DEFAULT 1,
             task_type VARCHAR(50) NOT NULL,
             business_line_id INTEGER NOT NULL,
             status VARCHAR(20) DEFAULT 'pending',
@@ -158,6 +224,7 @@ def create_tables(conn: sqlite3.Connection):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id INTEGER DEFAULT 1,
             account_name VARCHAR(100) NOT NULL,
             platform_id INTEGER NOT NULL,
             browser_id VARCHAR(100),
@@ -272,6 +339,15 @@ def create_indexes(conn: sqlite3.Connection):
         "CREATE INDEX IF NOT EXISTS idx_contents_scraped_at ON contents(scraped_at)",
         "CREATE INDEX IF NOT EXISTS idx_contacts_last_contact_at ON contacts(last_contact_at)",
         "CREATE INDEX IF NOT EXISTS idx_contacts_status_created ON contacts(contact_status, created_at)",
+        # 多租户索引：tenant_id 打头，避免租户过滤后全表扫
+        "CREATE INDEX IF NOT EXISTS idx_business_lines_tenant ON business_lines(tenant_id, status)",
+        "CREATE INDEX IF NOT EXISTS idx_keywords_tenant ON keywords(tenant_id, business_line_id)",
+        "CREATE INDEX IF NOT EXISTS idx_prompts_tenant ON prompt_templates(tenant_id, business_line_id)",
+        "CREATE INDEX IF NOT EXISTS idx_contacts_tenant ON contacts(tenant_id, business_line_id, contact_status)",
+        "CREATE INDEX IF NOT EXISTS idx_contents_tenant ON contents(tenant_id, business_line_id)",
+        "CREATE INDEX IF NOT EXISTS idx_task_executions_tenant ON task_executions(tenant_id, status, created_at)",
+        "CREATE INDEX IF NOT EXISTS idx_accounts_tenant ON accounts(tenant_id)",
+        "CREATE INDEX IF NOT EXISTS idx_tenant_members_account ON tenant_members(account_id, status)",
     ]
     
     for index_sql in indexes:
@@ -283,7 +359,13 @@ def create_indexes(conn: sqlite3.Connection):
 def init_base_data(conn: sqlite3.Connection):
     """初始化基础数据"""
     cursor = conn.cursor()
-    
+
+    # 默认租户：平台自用，历史与内部数据均挂在 tenant_id=1 下
+    cursor.execute(
+        "INSERT OR IGNORE INTO tenants (id, code, name, plan_code, status, quota_reach, quota_ai_calls, quota_seats) "
+        "VALUES (1, 'platform', '平台自用', 'internal', 1, 99999999, 99999999, 9999)"
+    )
+
     platforms = [
         ('tiktok', 'TikTok', '全球领先的短视频创意社区，助力品牌出海与海外用户触达', '/uploads/platforms/tiktok.png', 'dm'),
         ('xiaohongshu', '小红书', '生活方式分享平台，汇聚真实用户口碑与消费决策内容', '/uploads/platforms/xiaohongshu.png', 'dm'),
