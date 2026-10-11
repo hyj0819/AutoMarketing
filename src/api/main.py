@@ -36,6 +36,7 @@ from src.api.routes import ai_models, keywords, platforms, business_lines
 from src.api.routes import prompt_templates, contacts, contents, task_executions, stats
 from src.api.routes import accounts, operation_logs, system_configs
 from src.api.routes import auth, users, roles
+from src.api.routes import leads
 
 app.include_router(ai_models.router, prefix="/api/config/ai-models", tags=["AI模型配置"])
 app.include_router(keywords.router, prefix="/api/config/keywords", tags=["关键词管理"])
@@ -52,6 +53,12 @@ app.include_router(auth.router, prefix="/api/auth", tags=["认证"])
 app.include_router(users.router, prefix="/api/system/users", tags=["用户管理"])
 app.include_router(roles.router, prefix="/api/system/roles", tags=["角色管理"])
 app.include_router(system_configs.router, prefix="/api/system/configs", tags=["系统参数"])
+app.include_router(leads.router, prefix="/api/leads", tags=["线索跟进"])
+
+# 客户控制台（门户）：独立前缀、独立鉴权、独立出参模型
+from src.api.routes import portal
+
+app.include_router(portal.router, prefix="/api/portal", tags=["客户控制台"])
 
 
 @app.get("/")
