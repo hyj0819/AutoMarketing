@@ -91,10 +91,11 @@ def _save_content(platform_id: int, business_line_id: int, video: dict, keyword:
             text(
                 """
                 INSERT OR IGNORE INTO contents
-                    (platform_id, business_line_id, content_type, content_id, content_url,
+                    (tenant_id, platform_id, business_line_id, content_type, content_id, content_url,
                      title, author_id, author_name, engagement_stats, source_keyword)
                 VALUES
-                    (:pid, :blid, 'video', :cid, :url, :title, :author, :author, :stats, :kw)
+                    (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :blid), 1),
+                     :pid, :blid, 'video', :cid, :url, :title, :author, :author, :stats, :kw)
                 """
             ),
             {
@@ -130,10 +131,11 @@ def _save_contact(
             text(
                 """
                 INSERT OR IGNORE INTO contacts
-                    (platform_id, business_line_id, platform_user_id, username, profile_url,
-                     contact_status, metadata)
+                    (tenant_id, platform_id, business_line_id, platform_user_id, username, profile_url,
+                     contact_status, metadata, source_keyword)
                 VALUES
-                    (:pid, :blid, :uid, :uid, :url, 'pending', :meta)
+                    (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :blid), 1),
+                     :pid, :blid, :uid, :uid, :url, 'pending', :meta, :kw)
                 """
             ),
             {
@@ -142,6 +144,7 @@ def _save_contact(
                 "uid": uid,
                 "url": profile_url,
                 "meta": json.dumps(metadata, ensure_ascii=False),
+                "kw": metadata.get("source_keyword"),
             },
         )
         inserted = result.rowcount > 0

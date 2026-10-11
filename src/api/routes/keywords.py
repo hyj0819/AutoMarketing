@@ -76,7 +76,7 @@ def batch_create_keywords(data: KeywordBatchCreate, db: Session = Depends(get_db
             continue
         try:
             cursor = db.execute(
-                text("INSERT INTO keywords (business_line_id, keyword, priority, status) VALUES (:business_line_id, :keyword, :priority, :status)"),
+                text("INSERT INTO keywords (tenant_id, business_line_id, keyword, priority, status) VALUES (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1), :business_line_id, :keyword, :priority, :status)"),
                 {
                     "business_line_id": data.business_line_id,
                     "keyword": kw,
@@ -105,8 +105,8 @@ def batch_create_keywords(data: KeywordBatchCreate, db: Session = Depends(get_db
 def create_keyword(data: KeywordCreate, db: Session = Depends(get_db)):
     """创建关键词"""
     try:
-        query = text("""INSERT INTO keywords (business_line_id, keyword, priority, status)
-           VALUES (:business_line_id, :keyword, :priority, :status)""")
+        query = text("""INSERT INTO keywords (tenant_id, business_line_id, keyword, priority, status)
+           VALUES (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1), :business_line_id, :keyword, :priority, :status)""")
 
         cursor = db.execute(query, {
             "business_line_id": data.business_line_id,
@@ -188,6 +188,27 @@ def update_keyword(keyword_id: int, data: KeywordUpdate, db: Session = Depends(g
         status=row.status,
         created_at=str(row.created_at)
     ))
+
+
+@router.delete("/business-line/{business_line_id}", response_model=ApiResponse[dict])
+def delete_business_line_keywords(business_line_id: int, db: Session = Depends(get_db)):
+    """删除指定项目下的所有关键词"""
+    row = db.execute(
+        text("SELECT COUNT(*) AS cnt FROM keywords WHERE business_line_id = :lid"),
+        {"lid": business_line_id},
+    ).fetchone()
+    deleted_count = row.cnt if row else 0
+
+    db.execute(
+        text("DELETE FROM keywords WHERE business_line_id = :lid"),
+        {"lid": business_line_id},
+    )
+    db.commit()
+
+    return ApiResponse(result={
+        "message": f"成功删除 {deleted_count} 个关键词",
+        "deleted_count": deleted_count,
+    })
 
 
 @router.delete("/{keyword_id}", response_model=ApiResponse[dict])

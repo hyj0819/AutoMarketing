@@ -71,8 +71,33 @@ def _count_messages_sent_today(account_id: int | None) -> int:
         db.close()
 
 
-def _update_contact_status(contact_id: int, status: str):
-    """更新联系人状态"""
+def _load_active_template_id(business_line_id: int | None) -> int | None:
+    """取业务线当前激活的话术模板，用于把触达归因到具体话术"""
+    if not business_line_id:
+        return None
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            text("""
+                SELECT id FROM prompt_templates
+                WHERE business_line_id = :blid AND is_active = 1 AND status = 1
+                ORDER BY id DESC
+            """),
+            {"blid": business_line_id},
+        ).fetchone()
+        return row.id if row else None
+    except Exception as e:
+        print(f"⚠️ 读取话术模板失败: {e}")
+        return None
+    finally:
+        db.close()
+
+
+def _update_contact_status(contact_id: int, status: str, prompt_template_id: int | None = None):
+    """更新联系人状态，并记录本次触达使用的话术模板
+
+    prompt_template_id 为空时保留原值，避免历史归因被抹掉。
+    """
     db = SessionLocal()
     try:
         db.execute(
@@ -81,10 +106,11 @@ def _update_contact_status(contact_id: int, status: str):
                 SET contact_status = :status,
                     last_contact_at = CURRENT_TIMESTAMP,
                     contact_attempts = contact_attempts + 1,
+                    prompt_template_id = COALESCE(:tpl, prompt_template_id),
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = :id
             """),
-            {"id": contact_id, "status": status},
+            {"id": contact_id, "status": status, "tpl": prompt_template_id},
         )
         db.commit()
     except Exception as e:
@@ -336,6 +362,9 @@ async def run_message(task: dict, ctx):
 
     ctx.log("info", f"已加载 {len(contacts)} 个目标联系人")
 
+    # 本次触达使用的话术模板，用于「话术效果对比」归因
+    active_template_id = _load_active_template_id(task.get("business_line_id"))
+
     # 2. 个性化模式：加载 DeepSeek API Key
     deepseek_key = ""
     if message_mode == "personalized":
@@ -490,7 +519,7 @@ async def run_message(task: dict, ctx):
                 # 6c. 更新状态
                 if success:
                     success_count += 1
-                    _update_contact_status(contact["id"], "contacted")
+                    _update_contact_status(contact["id"], "contacted", active_template_id)
                     _record_interaction(contact["id"], task_id, json.dumps({
                         "message": message_text[:100],
                         "mode": message_mode,

@@ -26,6 +26,7 @@ from src.worker.pipelines.tiktok_message import (  # noqa: E402
     _load_contacts_by_ids,
     _count_messages_sent_today,
     _update_contact_status,
+    _load_active_template_id,
     _record_interaction,
     generate_personalized_message,
     _format_business_info_suffix,
@@ -178,6 +179,9 @@ async def run_message(task: dict, ctx):
 
     ctx.log("info", f"已加载 {len(contacts)} 个目标联系人")
 
+    # 本次触达使用的话术模板，用于「话术效果对比」归因
+    active_template_id = _load_active_template_id(task.get("business_line_id"))
+
     deepseek_key = ""
     if message_mode == "personalized":
         try:
@@ -292,7 +296,7 @@ async def run_message(task: dict, ctx):
 
                 if success:
                     success_count += 1
-                    _update_contact_status(contact["id"], "contacted")
+                    _update_contact_status(contact["id"], "contacted", active_template_id)
                     _record_interaction(contact["id"], task_id, json.dumps({
                         "message": message_text[:100], "mode": message_mode,
                     }, ensure_ascii=False))

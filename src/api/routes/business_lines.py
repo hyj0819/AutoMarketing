@@ -112,8 +112,8 @@ def create_business_line(data: BusinessLineCreate, db: Session = Depends(get_db)
     line_code = data.code or _generate_business_line_code()
     
     try:
-        query = text("""INSERT INTO business_lines (platform_id, code, name, status, config)
-           VALUES (:platform_id, :code, :name, :status, :config)""")
+        query = text("""INSERT INTO business_lines (tenant_id, platform_id, code, name, status, config)
+           VALUES (1, :platform_id, :code, :name, :status, :config)""")
         
         cursor = db.execute(query, {
             "platform_id": data.platform_id,

@@ -11,12 +11,14 @@ from jose import jwt, JWTError
 import os
 
 from src.core.database import get_db
+from src.core.security import get_jwt_secret
 from src.api.schemas.common import ApiResponse
 from src.api.schemas.user import LoginRequest, LoginResponse, UserInfo
 
 router = APIRouter()
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "automarketing-secret-key-change-in-production")
+# 签名密钥统一从 security 获取：生产环境缺 JWT_SECRET_KEY 会直接启动失败
+SECRET_KEY = get_jwt_secret()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
@@ -45,6 +47,10 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> dict:
         user_id = int(payload.get("sub"))
     except (JWTError, ValueError, AttributeError):
         raise HTTPException(status_code=401, detail="未登录或 Token 已过期")
+
+    # 门户令牌不能访问自用端：两者 sub 空间独立，避免门户账号 id 撞上内部账号
+    if payload.get("kind") == "portal":
+        raise HTTPException(status_code=401, detail="令牌类型不匹配")
     
     # 查询用户
     cursor = db.execute(text("SELECT * FROM users WHERE id = :id AND status = 1"), {"id": user_id})

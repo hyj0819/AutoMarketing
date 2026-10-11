@@ -167,10 +167,11 @@ def create_scrape_task(data: TaskScrapeCreate, db: Session = Depends(get_db)):
 
     insert_sql = text("""
         INSERT INTO task_executions
-            (task_name, task_type, business_line_id, status, task_config,
+            (tenant_id, task_name, task_type, business_line_id, status, task_config,
              total_items, pending_items, account_id)
         VALUES
-            (:task_name, 'scrape', :business_line_id, 'pending', :task_config,
+            (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1),
+             :task_name, 'scrape', :business_line_id, 'pending', :task_config,
              :total_items, :total_items, :account_id)
     """)
     db.execute(
@@ -214,10 +215,11 @@ def create_message_task(data: TaskMessageCreate, db: Session = Depends(get_db)):
 
     insert_sql = text("""
         INSERT INTO task_executions
-            (task_name, task_type, business_line_id, status, task_config,
+            (tenant_id, task_name, task_type, business_line_id, status, task_config,
              total_items, pending_items, account_id)
         VALUES
-            (:task_name, 'message', :business_line_id, 'pending', :task_config,
+            (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1),
+             :task_name, 'message', :business_line_id, 'pending', :task_config,
              :total_items, :total_items, :account_id)
     """)
     db.execute(
@@ -260,10 +262,11 @@ def create_reply_task(data: TaskReplyCreate, db: Session = Depends(get_db)):
 
     insert_sql = text("""
         INSERT INTO task_executions
-            (task_name, task_type, business_line_id, status, task_config,
+            (tenant_id, task_name, task_type, business_line_id, status, task_config,
              total_items, pending_items, account_id)
         VALUES
-            (:task_name, 'reply', :business_line_id, 'pending', :task_config,
+            (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1),
+             :task_name, 'reply', :business_line_id, 'pending', :task_config,
              :total_items, :total_items, :account_id)
     """)
     db.execute(
@@ -331,10 +334,11 @@ def create_reach_task(data: TaskReachCreate, db: Session = Depends(get_db)):
 
     insert_sql = text("""
         INSERT INTO task_executions
-            (task_name, task_type, business_line_id, status, task_config,
+            (tenant_id, task_name, task_type, business_line_id, status, task_config,
              total_items, pending_items, account_id)
         VALUES
-            (:task_name, 'reach', :business_line_id, 'pending', :task_config,
+            (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1),
+             :task_name, 'reach', :business_line_id, 'pending', :task_config,
              :total_items, :total_items, :account_id)
     """)
     db.execute(

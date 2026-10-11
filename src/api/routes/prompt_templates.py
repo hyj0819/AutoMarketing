@@ -98,8 +98,8 @@ def create_prompt_template(data: PromptTemplateCreate, db: Session = Depends(get
     template_code = data.template_code or _generate_template_code()
 
     try:
-        query = text("""INSERT INTO prompt_templates (business_line_id, template_code, name, template_content, variables, version, status, is_active)
-           VALUES (:business_line_id, :template_code, :name, :template_content, :variables, :version, :status, :is_active)""")
+        query = text("""INSERT INTO prompt_templates (tenant_id, business_line_id, template_code, name, template_content, variables, version, status, is_active)
+           VALUES (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1), :business_line_id, :template_code, :name, :template_content, :variables, :version, :status, :is_active)""")
 
         cursor = db.execute(query, {
             "business_line_id": data.business_line_id,

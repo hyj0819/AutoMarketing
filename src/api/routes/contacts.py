@@ -153,7 +153,9 @@ def export_contacts(
         '触达状态', '触达次数', '最后触达时间', '备注', '创建时间'
     ])
 
-    status_map = {'pending': '未触达', 'contacted': '已触达', 'replied': '已回复', 'converted': '已转化'}
+    status_map = {'pending': '待触达', 'contacted': '已私信', 'replied': '已回复', 'engaged': '有效对话',
+                  'qualified': '已确认需求', 'won': '已成交', 'lost': '已丢单',
+                  'invalid': '误判', 'snoozed': '稍后联系'}
     for row in rows:
         writer.writerow([
             row.id,
@@ -183,7 +185,8 @@ def batch_update_contacts(data: BatchUpdateRequest, db: Session = Depends(get_db
     if not data.ids:
         raise HTTPException(status_code=400, detail="No IDs provided")
 
-    valid_statuses = ['pending', 'contacted', 'replied', 'converted']
+    valid_statuses = ['pending', 'contacted', 'replied', 'engaged', 'qualified',
+                      'won', 'lost', 'invalid', 'snoozed']
     if data.contact_status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
 
@@ -232,8 +235,8 @@ def create_contact(data: ContactCreate, db: Session = Depends(get_db)):
 
     try:
         query = text("""
-            INSERT INTO contacts (platform_id, business_line_id, platform_user_id, username, profile_url, is_author, contact_status, notes, metadata)
-            VALUES (:platform_id, :business_line_id, :platform_user_id, :username, :profile_url, :is_author, :contact_status, :notes, :metadata)
+            INSERT INTO contacts (tenant_id, platform_id, business_line_id, platform_user_id, username, profile_url, is_author, contact_status, notes, metadata)
+            VALUES (COALESCE((SELECT tenant_id FROM business_lines WHERE id = :business_line_id), 1), :platform_id, :business_line_id, :platform_user_id, :username, :profile_url, :is_author, :contact_status, :notes, :metadata)
         """)
         db.execute(query, {
             "platform_id": data.platform_id,

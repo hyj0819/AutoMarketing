@@ -101,8 +101,8 @@ def create_account(data: AccountCreate, request: Request, db: Session = Depends(
     
     try:
         query = text("""
-            INSERT INTO accounts (account_name, platform_id, browser_id, notes)
-            VALUES (:account_name, :platform_id, :browser_id, :notes)
+            INSERT INTO accounts (tenant_id, account_name, platform_id, browser_id, notes)
+            VALUES (1, :account_name, :platform_id, :browser_id, :notes)
         """)
         cursor = db.execute(query, {
             "account_name": data.account_name,
